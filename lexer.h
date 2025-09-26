@@ -6,23 +6,23 @@
 
 // tokens for rat25 lang
 enum TokenType {
-    // keywords
-    FUNCTION, BOOLEAN, REAL_TYPE,
-    IF, FI, ELSE, RETURN, GET, PUT, WHILE, TRUE, FALSE,
+    // keywords for declaring types
+    FUNCTION, INTEGER_TYPE, BOOLEAN_TYPE, REAL_TYPE,
+    IF, FI, ELSE, RETURN, GET, PUT, WHILE,
     
-    // identifiers and numbers
-    IDENTIFIER, INTEGER, REAL,
+    // identifiers and literal values
+    IDENTIFIER, INTEGER, REAL, BOOLEAN,
     
     // operators
     PLUS, MINUS, MULTIPLY, DIVIDE, ASSIGN,
-    EQUAL, NOT_EQUAL_TO, LESS, GREATER, LESS_EQUAL, GREATER_EQUAL,
+    EQUAL, NOT_EQUAL, LESS, GREATER, LESS_EQUAL, GREATER_EQUAL,
     
     // separators
-    SEMICOLON, COMMA, HASH, LEFT_PARAN, RIGHT_PARAN, LEFT_BRAC,
-    RIGHT_BRAC,
+    SEMICOLON, COMMA, HASH, LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE,
+    RIGHT_BRACE,
     
-    // pther
-    COMMENT, WORD, END_FILE
+    // other
+    COMMENT, UNKNOWN, END_FILE
 };
 
 // soken structure
