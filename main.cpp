@@ -13,10 +13,13 @@ int main() {
     while (std::getline(f, line)) {
         std::string curr = "";
 
+        // Skip if the line is empty
         if (line.empty()) {
             continue;
         }
 
+        // Only add the character to curr line if it's not a comment
+        // and not enclosed by a comment
         for (char c : line) {
             if (c == '\"' && !comment) {
                 comment = true;
@@ -26,7 +29,8 @@ int main() {
                 curr += c;
             }
         }
-
+        
+        // If the line is all comments, skip it
         if (curr.empty()) {
             continue;
         }
@@ -34,6 +38,7 @@ int main() {
         lines.push_back(curr);
     }
 
+    // Prints out every line we parsed (not needed for functionality)
     std::cout << "[";
     for (size_t i = 0; i < lines.size(); ++i) {
         std::cout << "'" << lines[i] << "'";
