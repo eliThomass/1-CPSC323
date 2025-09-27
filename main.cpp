@@ -5,9 +5,10 @@
 
 int main() {
     std::vector<std::string> lines;
+    std::vector<std::vector<std::string> > tokens;
     bool comment = false;
 
-    std::ifstream f("input1.txt");
+    std::ifstream f("test_input.txt");
 
     std::string line;
     while (std::getline(f, line)) {
@@ -38,15 +39,33 @@ int main() {
         lines.push_back(curr);
     }
 
-    // Prints out every line we parsed (not needed for functionality)
-    std::cout << "[";
-    for (size_t i = 0; i < lines.size(); ++i) {
-        std::cout << "'" << lines[i] << "'";
-        if (i < lines.size() - 1) {
-            std::cout << ", ";
+    // Break down the lines into individual tokens
+    for (std::string& current_line : lines) {
+        std::vector<std::string> line_tokens;
+        std::string word = "";
+        for (char c: current_line){
+            if (isspace(c)) {
+                if (!word.empty()) {
+                    line_tokens.push_back(word);
+                    word = ""; // Reset the word
+                }
+            } else {
+                word += c; // Append character to the current word
+            }
         }
+        if(!word.empty()) {
+            line_tokens.push_back(word);
+        }
+        tokens.push_back(line_tokens);
     }
-    std::cout << "]" << std::endl;
+
+    // Prints out every token we parsed (not needed for functionality)
+    for(std::vector<std::string> line: tokens){
+        for(std::string token : line) {
+            std::cout << token << " $$$ ";
+        }
+        std::cout << std::endl;
+    }
 
     f.close();
 }
