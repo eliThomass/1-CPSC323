@@ -64,6 +64,74 @@ bool Lexer::isKeyword(std::string word) {
     return isword == 1;
 }
 
+//bool Lexer::IdDFSM(const std::string& word){
+//    if (word.empty()) return false;
+//    
+//    int state = 1;
+//
+//    for (char c : word) {
+//        if (state == 1)
+//        {
+//            if (isLetter(c))
+//                state = 2;
+//            else if (isDigit(c) || c == '$')
+//                state == 6;
+//            else
+//                return false;
+//        }
+//        else if (state == 2)
+//        {
+//            if (isLetter(c))
+//                state = 3;
+//            else if (isDigit(c))
+//                state = 4;
+//            else if (c == '$')
+//                state = 5;
+//            else
+//                return false;
+//        }
+//        else if (state == 3)
+//        {
+//            if (isLetter(c))
+//                state = 3;
+//            else if (isDigit(c))
+//                state = 4;
+//            else if (c == '$')
+//                state = 5;
+//            else
+//                return false;
+//        }
+//        else if (state == 4)
+//        {
+//            if (isLetter(c))
+//                state = 3;
+//            else if (isDigit(c))
+//                state = 4;
+//            else if (c == '$')
+//                state = 5;
+//            else
+//                return false;
+//        }
+//        else if (state == 5)
+//        {
+//            if (isLetter(c))
+//                state = 3;
+//            else if (isDigit(c))
+//                state = 4;
+//            else if (c == '$')
+//                state = 5;
+//            else
+//                return false;
+//        }
+//        else
+//            return false;
+//    }
+//    
+//    // Accepting states == 2,3,4,5
+//    return(state == 2 || state == 3 || state == 4 || state == 5);
+//
+//    }
+
 // Public functions
 
 Token Lexer::getNextToken(){
