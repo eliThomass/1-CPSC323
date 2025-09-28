@@ -46,6 +46,7 @@ private:
     bool isLetter(char c);
     bool isDigit(char c);
     bool isKeyword(std::string word);
+    //bool IdDFSM(const std::string& word);
     TokenType getKeywordType(std::string word);
     
 public:
