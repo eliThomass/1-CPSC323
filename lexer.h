@@ -37,12 +37,12 @@ class Lexer {
 private:
     std::string input;
     int position;
-    int currentLine;
+    int curr_line;
     
     // helper functions
     char getCurrentChar();
     char getNextChar();
-    void skipWhitespace();
+    bool isDelimiter();
     bool isLetter(char c);
     bool isDigit(char c);
     bool isKeyword(std::string word);
