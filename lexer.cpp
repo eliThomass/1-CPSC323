@@ -1,4 +1,5 @@
 #include "lexer.h"
+#include <unordered_set>
 
 
 // Private Functions (Constructor + Helpers)
@@ -10,32 +11,66 @@ Lexer::Lexer(std::string source_code) {
 }
 
 char Lexer::getCurrentChar() {
-
+    return input[position];
 }
 
-char Lexer::getNextChar() {
-
+void Lexer::advance() {
+    position++;
 }
 
 bool Lexer::isDelimiter() {
-
+    switch(getCurrentChar()) {
+        // Does current char == case (delimiter)?
+        case '(':
+        case ')':
+        case '{':
+        case '}':
+        case ';':
+        case ',':
+        case '#':
+        case '+':
+        case '-':
+        case '*':
+        case '/':
+        case '=':
+        case '<':
+        case '>':
+        case '!':
+            return true;
+        // If not delimiter, return false
+        default:
+            return false;
+    }
 }
-bool Lexer::isLetter(char c) {
 
+bool Lexer::isLetter(char c) {
+    return isalpha(c);
 }
 
 bool Lexer::isDigit(char c) {
-
+    return isdigit(c);
 }
 
 bool Lexer::isKeyword(std::string word) {
+    static const std::unordered_set<std::string> keywords = {
+        "function", "integer", "boolean", "real", "if", "fi", 
+        "else", "return", "get", "put", "while"
+    };
 
+    // Does the word exist in out set?
+    int isword = keywords.count(word);
+
+    // True if word is in set, false otherwise
+    return isword == 1;
 }
 
 // Public functions
 
 Token Lexer::getNextToken(){
-
+    std::string token = "";
+    while getCurrentChar() != ' ' {
+        
+    }
 }
 
 std::vector<Token> Lexer::getAllTokens() {

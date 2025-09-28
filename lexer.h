@@ -41,7 +41,7 @@ private:
     
     // helper functions
     char getCurrentChar();
-    char getNextChar();
+    void advance();
     bool isDelimiter();
     bool isLetter(char c);
     bool isDigit(char c);
