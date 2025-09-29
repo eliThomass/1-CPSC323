@@ -15,6 +15,8 @@ int main() {
     file.close();
 
     Lexer lexer(sourceCode);
+    Token test = lexer.getNextToken();
+    std::cout << test.value << std::endl;
     std::vector<Token> tokens = lexer.getAllTokens();
 
     std::cout << "Lexical Analysis Results\n";

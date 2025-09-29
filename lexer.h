@@ -26,7 +26,7 @@ enum TokenType {
     UNKNOWN
 };
 
-// soken structure
+// token structure
 struct Token {
     TokenType type;
     std::string value;

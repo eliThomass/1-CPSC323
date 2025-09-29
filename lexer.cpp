@@ -68,7 +68,8 @@ bool Lexer::isKeyword(std::string word) {
 
 Token Lexer::getNextToken(){
     std::string token = "";
-    while getCurrentChar() != ' ' {
+    while (getCurrentChar() != ' ') {
+        token += getCurrentChar();
         
     }
 }
