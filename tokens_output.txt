@@ -18,6 +18,7 @@ separator      |     )
 operator       |     /
 integer        |     9
 separator      |     ;
+real           |     123.123
 separator      |     }
 separator      |     #
 keyword        |     integer

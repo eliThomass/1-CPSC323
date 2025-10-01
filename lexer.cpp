@@ -11,12 +11,15 @@ Lexer::Lexer(std::string source_code) {
 }
 
 char Lexer::getCurrentChar() {
+    // If our position is greater than our input,
+    // our end of file character will be /0
     if (position >= (int)input.size())
         return '\0';
     return input[position];
 }
 
 void Lexer::advance() {
+    // Update position and potentially current line
     if (position < (int)input.size()) {
         if (input[position] == '\n') {
             curr_line++;
@@ -24,31 +27,6 @@ void Lexer::advance() {
         position++;
     }
 }
-//not in use feel free to delete after testing
-//bool Lexer::isDelimiter() {
-//    switch (getCurrentChar()) {
-//        // Does current char == case (delimiter)?
-//    case '(':
-//    case ')':
-//    case '{':
-//    case '}':
-//    case ';':
-//    case ',':
-//    case '#':
-//    case '+':
-//    case '-':
-//    case '*':
-//    case '/':
-//    case '=':
-//    case '<':
-//    case '>':
-//    case '!':
-//        return true;
-//        // If not delimiter, return false
-//    default:
-//        return false;
-//    }
-//}
 
 bool Lexer::isLetter(char c) {
     return isalpha(c);
@@ -65,7 +43,7 @@ bool Lexer::isKeyword(std::string word) {
         "else", "return", "get", "put", "while", "true", "false"
     };
 
-    // Does the word exist in out set?
+    // Does the word exist in our set?
     int isword = keywords.count(word);
 
     // True if word is in set, false otherwise
@@ -73,36 +51,83 @@ bool Lexer::isKeyword(std::string word) {
 }
 
 bool Lexer::IdDFSM(const std::string& word) {
-    if (word.empty()) return false;  // reject empty
+    if (word.empty()) return false;
 
     // 0=Letter, 1=Digit, 2='$', 3=Other
+    // We use a lambda function here since we
+    // can't declare a function inside a function
     auto char_to_col = [this](char ch) -> int {
         if (isLetter(ch)) return 0;
         if (isDigit(ch))  return 1;
         if (ch == '$')    return 2;
         return 3;
-        };
-
-    // States: 1=start, 2=letter, 3=letter, 4=digit, 5='$', 6=dead
-    // Accepting: 2,3,4,5
-    static const int T[7][4] = {
-        /*0:unused*/ {0, 0, 0, 0},
-        /*1:start */ {2, 6, 6, 6},   // must start with letter
-        /*2:letter*/ {3, 4, 5, 6},
-        /*3:letter*/ {3, 4, 5, 6},
-        /*4:digit */ {3, 4, 5, 6},
-        /*5:$     */ {3, 4, 5, 6},
-        /*6:dead  */ {6, 6, 6, 6}
     };
 
+    // States: 1=starting state, 2=letter, 3=letter, 4=digit, 5='$', 6=dead
+    // Accepting: 2,3,4,5
+    static const int T[7][4] = {
+        {0, 0, 0, 0}, // Unused state
+        {2, 6, 6, 6}, // Starting state (1)
+        {3, 4, 5, 6}, // First letter state (2)
+        {3, 4, 5, 6}, // Repeat letter state (3)
+        {3, 4, 5, 6}, // Digit state (4)
+        {3, 4, 5, 6}, // $ Symbol state (5)
+        {6, 6, 6, 6}  // Dead state (6)
+    };
+
+    // Initialize our starting state
     int state = 1;
+    
+    // Iterate over the ID
     for (char ch : word) {
         int col = char_to_col(ch);
         state = T[state][col];
-        if (state == 6) return false; // early reject
+
+        // If our state ever hits 6, the ID is not valid
+        if (state == 6) return false;
     }
     return (state == 2 || state == 3 || state == 4 || state == 5);
 }
+
+bool Lexer::intRealDFSM(const std::string& word) {
+    if (word.empty()) return false;
+
+    // 0=Letter, 1=Digit, 2='$', 3=Other
+    // We use a lambda function here since we
+    // can't declare a function inside a function
+    auto char_to_col = [this](char ch) -> int {
+        if (isLetter(ch)) return 0;
+        if (isDigit(ch))  return 1;
+        if (ch == '$')    return 2;
+        return 3;
+    };
+
+    // States: 1=starting state, 2=letter, 3=letter, 4=digit, 5='$', 6=dead
+    // Accepting: 2,3,4,5
+    static const int T[7][4] = {
+        {0, 0, 0, 0}, // Unused state
+        {2, 6, 6, 6}, // Starting state (1)
+        {3, 4, 5, 6}, // First letter state (2)
+        {3, 4, 5, 6}, // Repeat letter state (3)
+        {3, 4, 5, 6}, // Digit state (4)
+        {3, 4, 5, 6}, // $ Symbol state (5)
+        {6, 6, 6, 6}  // Dead state (6)
+    };
+
+    // Initialize our starting state
+    int state = 1;
+    
+    // Iterate over the ID
+    for (char ch : word) {
+        int col = char_to_col(ch);
+        state = T[state][col];
+
+        // If our state ever hits 6, the ID is not valid
+        if (state == 6) return false;
+    }
+    return (state == 2 || state == 3 || state == 4 || state == 5);
+}
+
 // Public functions
 
 Token Lexer::getNextToken() {
@@ -113,49 +138,55 @@ Token Lexer::getNextToken() {
         return input[i];                                          // return the lookahead character
         };
 
-    // 1) Skip whitespace and "quoted comments"
+    // Skip whitespace and comments
     while (true) {
-        char c = getCurrentChar();                                // current character (or '\0' at EOF)
-        if (c == '\0')                                            // end of input => return EOF sentinel
+        char c = getCurrentChar();
+
+        // If char is \0, we have reached end of file
+        if (c == '\0')
             return Token{ UNKNOWN, "", curr_line };
 
-        // plain whitespace
-        if (c == ' ' || c == '\t' || c == '\r') {                 // skip spaces/tabs/CR
-            advance();                                            // move forward one character
-            continue;                                             // keep skipping
+        // Skip whitespace, tabs, returns, newlines
+        if (c == ' ' || c == '\t' || c == '\r') {
+            advance();
+            continue;
         }
-        if (c == '\n') {                                          // newline encountered
-            advance();                                            // consume newline
-            continue;                                             // keep skipping
+        if (c == '\n') {
+            advance();
+            continue;
         }
 
-        // skips comments
-        if (c == '"') {                                           // start of a quoted comment
-            advance();                                            // consume the opening quote
-            while (true) {                                        // scan until we find a closing quote
-                char d = getCurrentChar();                        // char inside comment
-                if (d == '\0')                                    // unterminated comment -> treat like EOF
+        // Skip any comments
+        if (c == '"') {
+            advance();
+            // Scan until we find a closing comment
+            while (true) {
+                char d = getCurrentChar();
+                if (d == '\0')
                     return Token{ UNKNOWN, "", curr_line };
-                if (d == '\n') curr_line++;                       // keep line count correct while skipping
-                if (d == '"') {                                   // found the closing quote
-                    advance();                                    // consume it
-                    break;                                        // done skipping comment
+                if (d == '\n') curr_line++;
+                // If we find closing comment, skip it then break
+                if (d == '"') {
+                    advance();
+                    break;
                 }
-                advance();                                        // consume comment content
+                // If we didn't find closing comment, advance to next char
+                advance();
             }
-            continue;                                             // after comment, resume skipping
+            continue;
         }
 
-        break;                                                    // non-space / non-comment => token starts here
+        // Current character should now not be a comment or whitespace
+        break;
     }
 
     char c = getCurrentChar();
-    if (c == '\0') return Token{ UNKNOWN, "", curr_line };        // guard for EOF
+    if (c == '\0') return Token{ UNKNOWN, "", curr_line };
 
-    // IDENTIFIER / KEYWORD 
-    if (isLetter(c)) {                                            // likely identifier/keyword
-        int start = position;                                     // remember start index
-        advance();                                                // consume first (letter) char
+    // Check if character is an identifier / keyword
+    if (isLetter(c)) {
+        int start = position;
+        advance();
 
         // consume tail: (letter | digit | '$')*
         while (true) {
@@ -237,129 +268,187 @@ Token Lexer::getNextToken() {
    
     // OPERATORS
     
-    // two-char ops
-    if (c == '=' && peek() == '=') { advance(); advance(); return Token{ OP_EQUAL,         "==", curr_line }; }
-    if (c == '!' && peek() == '=') { advance(); advance(); return Token{ OP_NOT_EQUAL,     "!=", curr_line }; }
-    if (c == '<' && peek() == '=') { advance(); advance(); return Token{ OP_LESS_EQUAL,    "<=", curr_line }; }
-    //not in the relop (rule 24) if (c == '>' && peek() == '=') { advance(); advance(); return Token{ OP_GREATER_EQUAL, ">=", curr_line }; }
+    // Check for two-character operators
+    if (c == '=' && peek() == '=') { 
+        // Skip current and next characters, then add that token
+        advance(); 
+        advance(); 
+        return Token{ OP_EQUAL, "==", curr_line }; 
+    }
+    if (c == '!' && peek() == '=') { 
+        advance(); 
+        advance(); 
+        return Token{ OP_NOT_EQUAL, "!=", curr_line }; 
+    }
+    if (c == '<' && peek() == '=') { 
+        advance(); 
+        advance(); 
+        return Token{ OP_LESS_EQUAL, "<=", curr_line }; 
+    }
     if (c == '=' && peek() == '>') {
-        advance(); advance();
+        advance(); 
+        advance();
         return Token{ OP_GREATER_EQUAL, "=>", curr_line };
     }
-    // one-char ops
-    if (c == '=') { advance(); return Token{ OP_ASSIGN,  "=", curr_line }; }
-    if (c == '+') { advance(); return Token{ OP_PLUS,    "+", curr_line }; }
-    if (c == '-') { advance(); return Token{ MINUS,      "-", curr_line }; }
-    if (c == '*') { advance(); return Token{ OP_MULTIPLY,"*", curr_line }; }
-    if (c == '/') { advance(); return Token{ OP_DIVIDE,  "/", curr_line }; }
-    if (c == '<') { advance(); return Token{ OP_LESS,    "<", curr_line }; }
-    if (c == '>') { advance(); return Token{ OP_GREATER, ">", curr_line }; }
 
-    // 6) Fallback: unknown character — consume one so we don't loop forever
-    std::string unk(1, c);                                       // make a one-char string
-    advance();                                                   // consume it
-    return Token{ UNKNOWN, unk, curr_line };                     // report unknown
-}
-
-
-std::vector<Token> Lexer::getAllTokens() {
-    std::vector<Token> tokens;                       // this will hold the full token stream
-
-    for (;;) {                                       // keep asking for tokens until EOF
-        Token t = getNextToken();                    // scan the next token from input
-
-        // We use (UNKNOWN, "") as our EOF sentinel.
-        // If you ever change the EOF signal, update this condition.
-        if (t.type == UNKNOWN && t.value.empty()) {
-            break;                                   // reached end-of-input; stop scanning
-        }
-
-        tokens.push_back(std::move(t));              // keep the token (UNKNOWN with text also kept)
+    // Check for one-character operators
+    if (c == '=') {
+        advance();
+        return Token{ OP_ASSIGN, "=", curr_line };
+    }
+    if (c == '+') {
+        advance();
+        return Token{ OP_PLUS, "+", curr_line };
+    }
+    if (c == '-') {
+        advance();
+        return Token{ MINUS, "-", curr_line };
+    }
+    if (c == '*') {
+        advance();
+        return Token{ OP_MULTIPLY, "*", curr_line };
+    }
+    if (c == '/') {
+        advance();
+        return Token{ OP_DIVIDE, "/", curr_line };
+    }
+    if (c == '<') {
+        advance();
+        return Token{ OP_LESS, "<", curr_line };
+    }
+    if (c == '>') {
+        advance();
+        return Token{ OP_GREATER, ">", curr_line };
     }
 
-    return tokens;                                   // return the complete list to caller
+    // Finally, if character is unknown (failed all previous checks),
+    // Mark token as UNKNOWN and advance
+    std::string unknown_char(1, c);
+    advance();
+    return Token{ UNKNOWN, unknown_char, curr_line };
+}
+
+std::vector<Token> Lexer::getAllTokens() {
+    std::vector<Token> tokens;
+
+    while (true) {
+        // Scan next token
+        Token t = getNextToken();
+
+        // If token type is UNKNOWN and the token value is "",
+        // then we have reached the end of file
+        if (t.type == UNKNOWN && t.value.empty()) {
+            break;
+        }
+        
+        // Otherwise, add token to list
+        tokens.push_back(t);
+    }
+
+    return tokens;
 }
 
 std::string Lexer::getTokenName(TokenType type) {
     switch (type) {
-        // Keywords
-    case KEYWORD_FUNCTION:    return "KEYWORD_FUNCTION";
-    case KEYWORD_INTEGER:     return "KEYWORD_INTEGER";
-    case KEYWORD_BOOLEAN:     return "KEYWORD_BOOLEAN";
-    case KEYWORD_REAL:        return "KEYWORD_REAL";
-    case KEYWORD_IF:          return "KEYWORD_IF";
-    case KEYWORD_FI:          return "KEYWORD_FI";
-    case KEYWORD_ELSE:        return "KEYWORD_ELSE";
-    case KEYWORD_RETURN:      return "KEYWORD_RETURN";
-    case KEYWORD_GET:         return "KEYWORD_GET";
-    case KEYWORD_PUT:         return "KEYWORD_PUT";
-    case KEYWORD_WHILE:       return "KEYWORD_WHILE";
-    case KEYWORD_TRUE:        return "KEYWORD_TRUE";
-    case KEYWORD_FALSE:       return "KEYWORD_FALSE";
+        
+        // All keywords
+        case KEYWORD_FUNCTION:    return "KEYWORD_FUNCTION";
+        case KEYWORD_INTEGER:     return "KEYWORD_INTEGER";
+        case KEYWORD_BOOLEAN:     return "KEYWORD_BOOLEAN";
+        case KEYWORD_REAL:        return "KEYWORD_REAL";
+        case KEYWORD_IF:          return "KEYWORD_IF";
+        case KEYWORD_FI:          return "KEYWORD_FI";
+        case KEYWORD_ELSE:        return "KEYWORD_ELSE";
+        case KEYWORD_RETURN:      return "KEYWORD_RETURN";
+        case KEYWORD_GET:         return "KEYWORD_GET";
+        case KEYWORD_PUT:         return "KEYWORD_PUT";
+        case KEYWORD_WHILE:       return "KEYWORD_WHILE";
+        case KEYWORD_TRUE:        return "KEYWORD_TRUE";
+        case KEYWORD_FALSE:       return "KEYWORD_FALSE";
 
-        // Identifiers & literals
-    case IDENTIFIER:          return "IDENTIFIER";
-    case INTEGER_LITERAL:     return "INTEGER_LITERAL";
-    case REAL_LITERAL:        return "REAL_LITERAL";
+        // All identifiers + literals
+        case IDENTIFIER:          return "IDENTIFIER";
+        case INTEGER_LITERAL:     return "INTEGER_LITERAL";
+        case REAL_LITERAL:        return "REAL_LITERAL";
 
-        // Operators
-    case OP_PLUS:             return "OP_PLUS";
-    case MINUS:               return "MINUS";
-    case OP_MULTIPLY:         return "OP_MULTIPLY";
-    case OP_DIVIDE:           return "OP_DIVIDE";
-    case OP_ASSIGN:           return "OP_ASSIGN";
-    case OP_EQUAL:            return "OP_EQUAL";
-    case OP_NOT_EQUAL:        return "OP_NOT_EQUAL";
-    case OP_LESS:             return "OP_LESS";
-    case OP_GREATER:          return "OP_GREATER";
-    case OP_LESS_EQUAL:       return "OP_LESS_EQUAL";
-    case OP_GREATER_EQUAL:    return "OP_GREATER_EQUAL";
+        // All operators
+        case OP_PLUS:             return "OP_PLUS";
+        case MINUS:               return "MINUS";
+        case OP_MULTIPLY:         return "OP_MULTIPLY";
+        case OP_DIVIDE:           return "OP_DIVIDE";
+        case OP_ASSIGN:           return "OP_ASSIGN";
+        case OP_EQUAL:            return "OP_EQUAL";
+        case OP_NOT_EQUAL:        return "OP_NOT_EQUAL";
+        case OP_LESS:             return "OP_LESS";
+        case OP_GREATER:          return "OP_GREATER";
+        case OP_LESS_EQUAL:       return "OP_LESS_EQUAL";
+        case OP_GREATER_EQUAL:    return "OP_GREATER_EQUAL";
 
-        // Separators
-    case SEP_SEMICOLON:       return "SEP_SEMICOLON";
-    case SEP_COMMA:           return "SEP_COMMA";
-    case SEP_HASH:            return "SEP_HASH";
-    case SEP_LEFT_PAREN:      return "SEP_LEFT_PAREN";
-    case SEP_RIGHT_PAREN:     return "SEP_RIGHT_PAREN";
-    case SEP_LEFT_BRACE:      return "SEP_LEFT_BRACE";
-    case SEP_RIGHT_BRACE:     return "SEP_RIGHT_BRACE";
+        // All seperators
+        case SEP_SEMICOLON:       return "SEP_SEMICOLON";
+        case SEP_COMMA:           return "SEP_COMMA";
+        case SEP_HASH:            return "SEP_HASH";
+        case SEP_LEFT_PAREN:      return "SEP_LEFT_PAREN";
+        case SEP_RIGHT_PAREN:     return "SEP_RIGHT_PAREN";
+        case SEP_LEFT_BRACE:      return "SEP_LEFT_BRACE";
+        case SEP_RIGHT_BRACE:     return "SEP_RIGHT_BRACE";
 
-        // Catch-all
-    case UNKNOWN:             return "UNKNOWN";
+        // Unknown
+        case UNKNOWN: return "UNKNOWN";
     }
 
-    return "UNKNOWN"; // default fallback
+    return "UNKNOWN";
 }
 
 std::string Lexer::getCategoryName(TokenType type) {
     switch (type) {
-    case KEYWORD_FUNCTION: case KEYWORD_INTEGER: case KEYWORD_BOOLEAN:
-    case KEYWORD_REAL: case KEYWORD_IF: case KEYWORD_FI:
-    case KEYWORD_ELSE: case KEYWORD_RETURN: case KEYWORD_GET:
-    case KEYWORD_PUT: case KEYWORD_WHILE:
-        return "keyword";
+        case KEYWORD_FUNCTION: 
+        case KEYWORD_INTEGER: 
+        case KEYWORD_BOOLEAN:
+        case KEYWORD_REAL: 
+        case KEYWORD_IF: 
+        case KEYWORD_FI:
+        case KEYWORD_ELSE: 
+        case KEYWORD_RETURN: 
+        case KEYWORD_GET:
+        case KEYWORD_PUT: 
+        case KEYWORD_WHILE:
+            return "keyword";
 
-    case IDENTIFIER:        return "identifier";
-    case INTEGER_LITERAL:   return "integer";
-    case REAL_LITERAL:      return "real";
+        case IDENTIFIER:        return "identifier";
+        case INTEGER_LITERAL:   return "integer";
+        case REAL_LITERAL:      return "real";
 
-    case OP_PLUS: case MINUS: case OP_MULTIPLY: case OP_DIVIDE:
-    case OP_ASSIGN: case OP_EQUAL: case OP_NOT_EQUAL:
-    case OP_LESS: case OP_GREATER: case OP_LESS_EQUAL: case OP_GREATER_EQUAL:
-        return "operator";
+        case OP_PLUS: 
+        case MINUS: 
+        case OP_MULTIPLY: 
+        case OP_DIVIDE:
+        case OP_ASSIGN: 
+        case OP_EQUAL: 
+        case OP_NOT_EQUAL:
+        case OP_LESS: 
+        case OP_GREATER: 
+        case OP_LESS_EQUAL: 
+        case OP_GREATER_EQUAL:
+            return "operator";
 
-    case SEP_SEMICOLON: case SEP_COMMA: case SEP_HASH:
-    case SEP_LEFT_PAREN: case SEP_RIGHT_PAREN:
-    case SEP_LEFT_BRACE: case SEP_RIGHT_BRACE:
-        return "separator";
+        case SEP_SEMICOLON: 
+        case SEP_COMMA: 
+        case SEP_HASH:
+        case SEP_LEFT_PAREN: 
+        case SEP_RIGHT_PAREN:
+        case SEP_LEFT_BRACE: 
+        case SEP_RIGHT_BRACE:
+            return "separator";
 
-    default:
-        return "unknown";
+        default:
+            return "unknown";
     }
 }
 
 
 TokenType Lexer::getKeywordType(std::string word) {
+    // Check our keyword
     if (word == "function") return KEYWORD_FUNCTION;
     if (word == "integer")  return KEYWORD_INTEGER;
     if (word == "boolean")  return KEYWORD_BOOLEAN;
@@ -374,5 +463,5 @@ TokenType Lexer::getKeywordType(std::string word) {
     if (word == "true")     return KEYWORD_TRUE;
     if (word == "false")    return KEYWORD_FALSE;
 
-    return UNKNOWN; // shouldn’t happen if isKeyword was true
+    return UNKNOWN;
 }
