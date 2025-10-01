@@ -7,7 +7,13 @@
 #include <sstream> // Read whole input into one string
 
 int main() {
-    std::ifstream file("test_input.txt");
+    // Prompt user for an input file to parse
+    std::string filein;
+    std::cout << "Enter input file: ";
+    std::cin >> filein;
+
+    // Check if file exists
+    std::ifstream file(filein);
     if (!file) {
         std::cerr << "Error: could not open input file\n";
         return 1;
@@ -19,38 +25,25 @@ int main() {
     std::string sourceCode = buffer.str();
     file.close();
 
+    // Initialize our lexer, then get all tokens from sourceCode
     Lexer lexer(sourceCode);
-    Token test = lexer.getNextToken();
-    std::cout << test.value << std::endl;
     std::vector<Token> tokens = lexer.getAllTokens();
 
-    // open an output file for writing results
+    // Opens an output file for writing results
     std::ofstream outFile("tokens_output.txt");
-    if (!outFile) {
-        std::cerr << "Error: could not create output file\n";
-        return 1;
-    }
 
-    // Print header
-    std::cout << std::left << std::setw(12) << "token"
-        << "lexeme" << "\n";
-    outFile << std::left << std::setw(12) << "token" << "lexeme\n";
+    std::cout << std::left << std::setw(15) << "token" << std::setw(6) << "|" << "lexeme" << "\n";
+    outFile << std::left << std::setw(15) << "token" << std::setw(6) << "|" << "lexeme\n";
+
+    std::cout << std::endl;
+    outFile << std::endl;
 
     // Print tokens
     for (auto& token : tokens) {
         std::string category = lexer.getCategoryName(token.type);
 
-        // Match professor's sample exactly:
-        // everything lowercase, except "Separator" (capitalized S)
-        if (category == "separator")
-            category = "Separator";
-
-        std::cout << std::left << std::setw(12)
-            << category
-            << token.value << "\n";
-        outFile << std::left << std::setw(12) 
-            << category 
-            << token.value << "\n";
+        std::cout << std::left << std::setw(15) << category << std::setw(6) << "|"<< token.value << "\n";
+        outFile << std::left << std::setw(15) << category << std::setw(6) << "|" << token.value << "\n";
     }
     outFile.close();
     return 0;
