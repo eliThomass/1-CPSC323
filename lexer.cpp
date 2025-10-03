@@ -1,6 +1,7 @@
 #include "lexer.h"
 #include <unordered_set>
 #include <cctype>
+#include <iostream>
 
 // Private Functions (Constructor + Helpers)
 
@@ -143,8 +144,9 @@ Token Lexer::getNextToken() {
         char c = getCurrentChar();
 
         // If char is \0, we have reached end of file
-        if (c == '\0')
+        if (c == '\0') {
             return Token{ UNKNOWN, "", curr_line };
+        }
 
         // Skip whitespace, tabs, returns, newlines
         if (c == ' ' || c == '\t' || c == '\r') {
@@ -186,35 +188,35 @@ Token Lexer::getNextToken() {
     // Check if character is an identifier / keyword
     if (isLetter(c)) {
         int start = position;
-        advance();
 
-        // consume tail: (letter | digit | '$')*
         while (true) {
-            char d = getCurrentChar();
-            if (isLetter(d) || isDigit(d) || d == '$')            // valid continuation?
-                advance();                                        // yes -> keep consuming
-            else
-                break;                                            // stop when it’s no longer valid
+            // Peek at the next character without consuming
+            char next_char = peek(1); 
+            
+            // Test string of what the lexeme would be if we advance
+            std::string potential_lex = input.substr(start, position - start + 1);
+
+            // Is this potential lexeme a valid identifier?
+            if (IdDFSM(potential_lex)) {
+                // If our potential lexeme is still valid, advance to next character
+                advance();
+            } else {
+                // If potential lexeme is not valid, the identifier has ended.
+                break;
+            }
         }
 
-        std::string lex = input.substr(start, position - start);  // slice the candidate lexeme
+        // Create our lexeme based off our previos starting position and current position now.
+        std::string lex = input.substr(start, position - start);
 
-        // keywords are case-insensitive; normalize a copy for matching
-        std::string lower = lex;
-        for (char& ch : lower)                                    //ASCII tolower
-            if (ch >= 'A' && ch <= 'Z') ch = char(ch - 'A' + 'a');
-
-        if (isKeyword(lower)) {
-            return Token{ getKeywordType(lower), lex, curr_line };
+        // Note that keywords are CASE SENSITIVE
+        // eg. IF = identifier but if = keyword
+        if (isKeyword(lex)) {
+            return Token{ getKeywordType(lex), lex, curr_line };
         }
 
-        // dfsm check for id
-        if (IdDFSM(lex)) {
-            return Token{ IDENTIFIER, lex, curr_line };
-        }
-        else {
-            return Token{ UNKNOWN, lex, curr_line };              // DFA rejected
-        }
+        // If not keyword, we know that it is an identifier
+        return Token{ IDENTIFIER, lex, curr_line };
     }
 
     // 3) NUMBERS (Integer or Real)
@@ -321,7 +323,7 @@ Token Lexer::getNextToken() {
         return Token{ OP_GREATER, ">", curr_line };
     }
 
-    // Finally, if character is unknown (failed all previous checks),
+    // If character is unknown (failed all previous checks),
     // Mark token as UNKNOWN and advance
     std::string unknown_char(1, c);
     advance();
@@ -415,9 +417,9 @@ std::string Lexer::getCategoryName(TokenType type) {
         case KEYWORD_WHILE:
             return "keyword";
 
-        case IDENTIFIER:        return "identifier";
-        case INTEGER_LITERAL:   return "integer";
-        case REAL_LITERAL:      return "real";
+        case IDENTIFIER: return "identifier";
+        case INTEGER_LITERAL: return "integer";
+        case REAL_LITERAL: return "real";
 
         case OP_PLUS: 
         case MINUS: 
