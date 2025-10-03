@@ -59,8 +59,8 @@ bool Lexer::IdDFSM(const std::string& word) {
     // can't declare a function inside a function
     auto char_to_col = [this](char ch) -> int {
         if (isLetter(ch)) return 0;
-        if (isDigit(ch))  return 1;
-        if (ch == '$')    return 2;
+        if (isDigit(ch)) return 1;
+        if (ch == '$') return 2;
         return 3;
     };
 
@@ -88,13 +88,13 @@ bool Lexer::IdDFSM(const std::string& word) {
     return (state == 2 || state == 3 || state == 4 || state == 5);
 }
 
-bool Lexer::intRealDFSM(const std::string& word) {
-    if (word.empty()) return false;
+int Lexer::intRealDFSM(const std::string& word) {
+    if (word.empty()) return 2;
 
     // 0=Digit, 1='.', 2=Other
     auto char_to_col = [this](char ch) -> int {
         if (isDigit(ch)) return 0;
-        if (ch == '.')   return 1;
+        if (ch == '.') return 1;
         return 2;
     };
 
@@ -114,13 +114,26 @@ bool Lexer::intRealDFSM(const std::string& word) {
     for (char ch : word) {
         int col = char_to_col(ch);
         state = T[state][col];
-
-        // If our state ever hits 6, the ID is not valid
-        if (state == 6) return false;
+        if (state == 5) return 2;
     }
-    return (state == 2 || state == 3 || state == 4 || state == 5);
-}
 
+    // If integer, return a 2 (integer number)
+    if (state == 2){
+        return 0;
+    }
+    // If real, return a 1 (real number)
+    if (state == 4){
+        return 1;
+    }
+    // If it ends in a decimal, we need to check the next number still
+    if (state == 3){
+        return 3;
+    }
+    // If not an integer or a real, return 2 (invalid)
+    return 2;
+
+
+}
 
 
 // Public functions
@@ -194,7 +207,7 @@ Token Lexer::getNextToken() {
             }
         }
 
-        // Create our lexeme based off our previos starting position and current position now.
+        // Create our lexeme based off our previous starting position and current position now.
         std::string lex = input.substr(start, position - start);
 
         if (isKeyword(lex)) {
@@ -207,47 +220,61 @@ Token Lexer::getNextToken() {
 
     if (isDigit(c) || c == '.') {
         int start = position;
-        while (isDigit(getCurrentChar()))
-            advance();
+        while (true) {
+            char c = getCurrentChar();
 
-        bool hasDot = false;                                      // track decimal point form
-        if (getCurrentChar() == '.' && std::isdigit((unsigned char)peek())) {
-            hasDot = true;                                        // we have '.' with at least one digit after
-            advance();                                            // consume '.'
-            while (isDigit(getCurrentChar()))                     // consume fractional digits
-                advance();
+            if (c == '\0') {
+                break;
+            }
+
+            std::string potential_lex = input.substr(start, position - start + 1);
+
+            // If number is invalid, break
+            if (intRealDFSM(potential_lex) == 2) {
+                break; 
+            }
+
+            advance();
         }
 
-        std::string num = input.substr(start, position - start);  // slice numeric lexeme
-
-        // add IntDFSM/RealDFSM, call them here:
-        // if (!hasDot && IntDFSM(num)) return Token{ INTEGER_LITERAL, num, curr_line };
-        // if ( hasDot && RealDFSM(num)) return Token{ REAL_LITERAL,   num, curr_line };
-        // For now, classify from the shape
-        return Token{ hasDot ? REAL_LITERAL : INTEGER_LITERAL, num, curr_line };
-    }
-
-    // Leading '.' form for reals like ".001"
-    if (c == '.' && std::isdigit((unsigned char)peek())) {        // '.' followed by digit -> real like ".25"
-        int start = position;                                     // start at '.'
-        advance();                                                // consume '.'
-        while (isDigit(getCurrentChar()))                         // consume digits after '.'
-            advance();
-        std::string num = input.substr(start, position - start);  // e.g., ".001"
-
-        //add RealDFSM later, call it here first.
-        return Token{ REAL_LITERAL, num, curr_line };             // classify as real for now
+        if (position != start) {
+            // Create our lexeme based off our previous starting position and current position now.
+            std::string lexeme = input.substr(start, position - start);
+            int type = intRealDFSM(lexeme);
+            // 0 == Integer
+            if (type == 0) {
+                return Token{ INTEGER_LITERAL, lexeme, curr_line };
+            } 
+            // 1 == Real
+            if (type == 1) {
+                return Token{ REAL_LITERAL, lexeme, curr_line };
+            }
+        }
     }
 
     // SEPARATORS
     switch (c) {
-    case '(': advance(); return Token{ SEP_LEFT_PAREN,  "(", curr_line };
-    case ')': advance(); return Token{ SEP_RIGHT_PAREN, ")", curr_line };
-    case '{': advance(); return Token{ SEP_LEFT_BRACE,  "{", curr_line };
-    case '}': advance(); return Token{ SEP_RIGHT_BRACE, "}", curr_line };
-    case ';': advance(); return Token{ SEP_SEMICOLON,   ";", curr_line };
-    case ',': advance(); return Token{ SEP_COMMA,       ",", curr_line };
-    case '#': advance(); return Token{ SEP_HASH,        "#", curr_line };
+    case '(': 
+        advance(); 
+        return Token{ SEP_LEFT_PAREN,  "(", curr_line };
+    case ')': 
+        advance(); 
+        return Token{ SEP_RIGHT_PAREN, ")", curr_line };
+    case '{': 
+        advance(); 
+        return Token{ SEP_LEFT_BRACE, "{", curr_line };
+    case '}': 
+        advance();
+        return Token{ SEP_RIGHT_BRACE, "}", curr_line };
+    case ';': 
+        advance(); 
+        return Token{ SEP_SEMICOLON, ";", curr_line };
+    case ',': 
+        advance(); 
+        return Token{ SEP_COMMA, ",", curr_line };
+    case '#': 
+        advance(); 
+        return Token{ SEP_HASH, "#", curr_line };
     }
    
     // OPERATORS
