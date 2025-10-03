@@ -78,7 +78,6 @@ bool Lexer::IdDFSM(const std::string& word) {
 
     int state = 1;
     
-    // Iterate over the ID
     for (char ch : word) {
         int col = char_to_col(ch);
         state = T[state][col];
@@ -94,10 +93,9 @@ bool Lexer::intRealDFSM(const std::string& word) {
 
     // 0 == Digit, 1 == '.', 2 == Other
     auto char_to_col = [this](char ch) -> int {
-        if (isLetter(ch)) return 0;
-        if (isDigit(ch))  return 1;
-        if (ch == '$')    return 2;
-        return 3;
+        if (isDigit(ch)) return 0;
+        if (ch == '.') return 1;
+        return 2;
     };
 
     // States: 1=starting state, 2=front digit, 3=decimal, 4=decimal digit, 5=dead
@@ -113,15 +111,14 @@ bool Lexer::intRealDFSM(const std::string& word) {
 
     int state = 1;
     
-    // Iterate over the ID
     for (char ch : word) {
         int col = char_to_col(ch);
         state = T[state][col];
 
-        // If our state ever hits 6, the ID is not valid
-        if (state == 6) return false;
+        // If our state ever hits 6, the number isn't valid
+        if (state == 5) return false;
     }
-    return (state == 2 || state == 3 || state == 4 || state == 5);
+    return (state == 2 || state == 4);
 }
 
 
