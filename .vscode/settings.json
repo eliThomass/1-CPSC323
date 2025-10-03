@@ -1,0 +1,6 @@
+{
+    "kiroAgent.configureMCP": "Disabled",
+    "files.associations": {
+        "vector": "cpp"
+    }
+}
