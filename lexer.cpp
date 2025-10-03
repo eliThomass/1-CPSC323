@@ -76,7 +76,6 @@ bool Lexer::IdDFSM(const std::string& word) {
         {6, 6, 6, 6}  // Dead state (6)
     };
 
-    // Initialize our starting state
     int state = 1;
     
     // Iterate over the ID
@@ -93,9 +92,7 @@ bool Lexer::IdDFSM(const std::string& word) {
 bool Lexer::intRealDFSM(const std::string& word) {
     if (word.empty()) return false;
 
-    // 0=Letter, 1=Digit, 2='$', 3=Other
-    // We use a lambda function here since we
-    // can't declare a function inside a function
+    // 0 == Digit, 1 == '.', 2 == Other
     auto char_to_col = [this](char ch) -> int {
         if (isLetter(ch)) return 0;
         if (isDigit(ch))  return 1;
@@ -103,19 +100,17 @@ bool Lexer::intRealDFSM(const std::string& word) {
         return 3;
     };
 
-    // States: 1=starting state, 2=letter, 3=letter, 4=digit, 5='$', 6=dead
-    // Accepting: 2,3,4,5
-    static const int T[7][4] = {
-        {0, 0, 0, 0}, // Unused state
-        {2, 6, 6, 6}, // Starting state (1)
-        {3, 4, 5, 6}, // First letter state (2)
-        {3, 4, 5, 6}, // Repeat letter state (3)
-        {3, 4, 5, 6}, // Digit state (4)
-        {3, 4, 5, 6}, // $ Symbol state (5)
-        {6, 6, 6, 6}  // Dead state (6)
+    // States: 1=starting state, 2=front digit, 3=decimal, 4=decimal digit, 5=dead
+    // Accepting: 2, 4
+    static const int T[7][3] = {
+        {0, 0, 0}, // Unused state
+        {2, 3, 5}, // Starting state (1)
+        {2, 3, 5}, // Front digit state (2)
+        {4, 5, 5}, // Dot state (3)
+        {4, 5, 5}, // Decimal digit state (4)
+        {5, 5, 5}, // Dead state (5)
     };
 
-    // Initialize our starting state
     int state = 1;
     
     // Iterate over the ID
@@ -129,14 +124,15 @@ bool Lexer::intRealDFSM(const std::string& word) {
     return (state == 2 || state == 3 || state == 4 || state == 5);
 }
 
+
+
 // Public functions
 
 Token Lexer::getNextToken() {
-    // --- small local helper: look ahead without consuming ---
     auto peek = [&](int off = 1) -> char {
-        int i = position + off;                                   // compute the index to peek
-        if (i < 0 || i >= (int)input.size()) return '\0';         // out of range => pretend EOF
-        return input[i];                                          // return the lookahead character
+        int i = position + off;
+        if (i < 0 || i >= (int)input.size()) return '\0'; 
+        return input[i];
         };
 
     // Skip whitespace and comments
@@ -147,8 +143,6 @@ Token Lexer::getNextToken() {
         if (c == '\0') {
             return Token{ UNKNOWN, "", curr_line };
         }
-
-        // Skip whitespace, tabs, returns, newlines
         if (c == ' ' || c == '\t' || c == '\r') {
             advance();
             continue;
@@ -190,18 +184,15 @@ Token Lexer::getNextToken() {
         int start = position;
 
         while (true) {
-            // Peek at the next character without consuming
             char next_char = peek(1); 
             
             // Test string of what the lexeme would be if we advance
             std::string potential_lex = input.substr(start, position - start + 1);
 
-            // Is this potential lexeme a valid identifier?
             if (IdDFSM(potential_lex)) {
-                // If our potential lexeme is still valid, advance to next character
+                // If our potential lexeme is still valid, advance to next character, otherwise break
                 advance();
             } else {
-                // If potential lexeme is not valid, the identifier has ended.
                 break;
             }
         }
@@ -209,8 +200,6 @@ Token Lexer::getNextToken() {
         // Create our lexeme based off our previos starting position and current position now.
         std::string lex = input.substr(start, position - start);
 
-        // Note that keywords are CASE SENSITIVE
-        // eg. IF = identifier but if = keyword
         if (isKeyword(lex)) {
             return Token{ getKeywordType(lex), lex, curr_line };
         }
@@ -219,13 +208,9 @@ Token Lexer::getNextToken() {
         return Token{ IDENTIFIER, lex, curr_line };
     }
 
-    // 3) NUMBERS (Integer or Real)
-    //    Slice per the spec, then (optionally) delegate to DFAs you add later.
-    //    - Integer: digits+
-    //    - Real:    digits+ '.' digits+   OR   '.' digits+    (NOT '123.')
-    if (isDigit(c)) {                                             // starts with a digit -> number
-        int start = position;                                     // mark start of number
-        while (isDigit(getCurrentChar()))                         // consume integer part
+    if (isDigit(c) || c == '.') {
+        int start = position;
+        while (isDigit(getCurrentChar()))
             advance();
 
         bool hasDot = false;                                      // track decimal point form
@@ -272,7 +257,6 @@ Token Lexer::getNextToken() {
     
     // Check for two-character operators
     if (c == '=' && peek() == '=') { 
-        // Skip current and next characters, then add that token
         advance(); 
         advance(); 
         return Token{ OP_EQUAL, "==", curr_line }; 
@@ -323,8 +307,7 @@ Token Lexer::getNextToken() {
         return Token{ OP_GREATER, ">", curr_line };
     }
 
-    // If character is unknown (failed all previous checks),
-    // Mark token as UNKNOWN and advance
+    // Mark as unknown if all previous checks fails
     std::string unknown_char(1, c);
     advance();
     return Token{ UNKNOWN, unknown_char, curr_line };
@@ -334,16 +317,13 @@ std::vector<Token> Lexer::getAllTokens() {
     std::vector<Token> tokens;
 
     while (true) {
-        // Scan next token
         Token t = getNextToken();
 
-        // If token type is UNKNOWN and the token value is "",
-        // then we have reached the end of file
+        // End of file check
         if (t.type == UNKNOWN && t.value.empty()) {
             break;
         }
         
-        // Otherwise, add token to list
         tokens.push_back(t);
     }
 
@@ -354,46 +334,80 @@ std::string Lexer::getTokenName(TokenType type) {
     switch (type) {
         
         // All keywords
-        case KEYWORD_FUNCTION:    return "KEYWORD_FUNCTION";
-        case KEYWORD_INTEGER:     return "KEYWORD_INTEGER";
-        case KEYWORD_BOOLEAN:     return "KEYWORD_BOOLEAN";
-        case KEYWORD_REAL:        return "KEYWORD_REAL";
-        case KEYWORD_IF:          return "KEYWORD_IF";
-        case KEYWORD_FI:          return "KEYWORD_FI";
-        case KEYWORD_ELSE:        return "KEYWORD_ELSE";
-        case KEYWORD_RETURN:      return "KEYWORD_RETURN";
-        case KEYWORD_GET:         return "KEYWORD_GET";
-        case KEYWORD_PUT:         return "KEYWORD_PUT";
-        case KEYWORD_WHILE:       return "KEYWORD_WHILE";
-        case KEYWORD_TRUE:        return "KEYWORD_TRUE";
-        case KEYWORD_FALSE:       return "KEYWORD_FALSE";
+        case KEYWORD_FUNCTION:
+            return "KEYWORD_FUNCTION";
+        case KEYWORD_INTEGER:
+            return "KEYWORD_INTEGER";
+        case KEYWORD_BOOLEAN:
+            return "KEYWORD_BOOLEAN";
+        case KEYWORD_REAL:
+            return "KEYWORD_REAL";
+        case KEYWORD_IF:
+            return "KEYWORD_IF";
+        case KEYWORD_FI:
+            return "KEYWORD_FI";
+        case KEYWORD_ELSE:
+            return "KEYWORD_ELSE";
+        case KEYWORD_RETURN:
+            return "KEYWORD_RETURN";
+        case KEYWORD_GET:
+            return "KEYWORD_GET";
+        case KEYWORD_PUT:
+            return "KEYWORD_PUT";
+        case KEYWORD_WHILE:
+            return "KEYWORD_WHILE";
+        case KEYWORD_TRUE: 
+            return "KEYWORD_TRUE";
+        case KEYWORD_FALSE: 
+            return "KEYWORD_FALSE";
 
         // All identifiers + literals
-        case IDENTIFIER:          return "IDENTIFIER";
-        case INTEGER_LITERAL:     return "INTEGER_LITERAL";
-        case REAL_LITERAL:        return "REAL_LITERAL";
+        case IDENTIFIER:
+            return "IDENTIFIER";
+        case INTEGER_LITERAL:
+            return "INTEGER_LITERAL";
+        case REAL_LITERAL: 
+            return "REAL_LITERAL";
 
         // All operators
-        case OP_PLUS:             return "OP_PLUS";
-        case MINUS:               return "MINUS";
-        case OP_MULTIPLY:         return "OP_MULTIPLY";
-        case OP_DIVIDE:           return "OP_DIVIDE";
-        case OP_ASSIGN:           return "OP_ASSIGN";
-        case OP_EQUAL:            return "OP_EQUAL";
-        case OP_NOT_EQUAL:        return "OP_NOT_EQUAL";
-        case OP_LESS:             return "OP_LESS";
-        case OP_GREATER:          return "OP_GREATER";
-        case OP_LESS_EQUAL:       return "OP_LESS_EQUAL";
-        case OP_GREATER_EQUAL:    return "OP_GREATER_EQUAL";
+        case OP_PLUS:
+            return "OP_PLUS";
+        case MINUS:
+            return "MINUS";
+        case OP_MULTIPLY:
+            return "OP_MULTIPLY";
+        case OP_DIVIDE:
+            return "OP_DIVIDE";
+        case OP_ASSIGN:
+            return "OP_ASSIGN";
+        case OP_EQUAL:
+            return "OP_EQUAL";
+        case OP_NOT_EQUAL:
+            return "OP_NOT_EQUAL";
+        case OP_LESS:
+            return "OP_LESS";
+        case OP_GREATER:
+            return "OP_GREATER";
+        case OP_LESS_EQUAL:
+            return "OP_LESS_EQUAL";
+        case OP_GREATER_EQUAL:
+            return "OP_GREATER_EQUAL";
 
         // All seperators
-        case SEP_SEMICOLON:       return "SEP_SEMICOLON";
-        case SEP_COMMA:           return "SEP_COMMA";
-        case SEP_HASH:            return "SEP_HASH";
-        case SEP_LEFT_PAREN:      return "SEP_LEFT_PAREN";
-        case SEP_RIGHT_PAREN:     return "SEP_RIGHT_PAREN";
-        case SEP_LEFT_BRACE:      return "SEP_LEFT_BRACE";
-        case SEP_RIGHT_BRACE:     return "SEP_RIGHT_BRACE";
+        case SEP_SEMICOLON:
+            return "SEP_SEMICOLON";
+        case SEP_COMMA:
+            return "SEP_COMMA";
+        case SEP_HASH:
+             return "SEP_HASH";
+        case SEP_LEFT_PAREN:
+            return "SEP_LEFT_PAREN";
+        case SEP_RIGHT_PAREN:
+            return "SEP_RIGHT_PAREN";
+        case SEP_LEFT_BRACE:
+            return "SEP_LEFT_BRACE";
+        case SEP_RIGHT_BRACE:
+            return "SEP_RIGHT_BRACE";
 
         // Unknown
         case UNKNOWN: return "UNKNOWN";
@@ -448,22 +462,34 @@ std::string Lexer::getCategoryName(TokenType type) {
     }
 }
 
-
 TokenType Lexer::getKeywordType(std::string word) {
     // Check our keyword
-    if (word == "function") return KEYWORD_FUNCTION;
-    if (word == "integer")  return KEYWORD_INTEGER;
-    if (word == "boolean")  return KEYWORD_BOOLEAN;
-    if (word == "real")     return KEYWORD_REAL;
-    if (word == "if")       return KEYWORD_IF;
-    if (word == "fi")       return KEYWORD_FI;
-    if (word == "else")     return KEYWORD_ELSE;
-    if (word == "return")   return KEYWORD_RETURN;
-    if (word == "get")      return KEYWORD_GET;
-    if (word == "put")      return KEYWORD_PUT;
-    if (word == "while")    return KEYWORD_WHILE;
-    if (word == "true")     return KEYWORD_TRUE;
-    if (word == "false")    return KEYWORD_FALSE;
+    if (word == "function") 
+        return KEYWORD_FUNCTION;
+    if (word == "integer") 
+        return KEYWORD_INTEGER;
+    if (word == "boolean") 
+        return KEYWORD_BOOLEAN;
+    if (word == "real")    
+        return KEYWORD_REAL;
+    if (word == "if")      
+        return KEYWORD_IF;
+    if (word == "fi")      
+        return KEYWORD_FI;
+    if (word == "else")    
+        return KEYWORD_ELSE;
+    if (word == "return")  
+        return KEYWORD_RETURN;
+    if (word == "get")
+        return KEYWORD_GET; 
+    if (word == "put")
+        return KEYWORD_PUT;
+    if (word == "while")
+        return KEYWORD_WHILE;
+    if (word == "true")
+        return KEYWORD_TRUE;
+    if (word == "false")
+        return KEYWORD_FALSE;
 
     return UNKNOWN;
 }
