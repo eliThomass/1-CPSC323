@@ -92,36 +92,33 @@ bool Lexer::IdDFSM(const std::string& word) {
 bool Lexer::intRealDFSM(const std::string& word) {
     if (word.empty()) return false;
 
-    // 0 == Digit, 1 == '.', 2 == Other
+    // 0=Digit, 1='.', 2=Other
     auto char_to_col = [this](char ch) -> int {
-        if (isLetter(ch)) return 0;
-        if (isDigit(ch))  return 1;
-        if (ch == '$')    return 2;
-        return 3;
+        if (isDigit(ch)) return 0;
+        if (ch == '.')   return 1;
+        return 2;
     };
 
-    // States: 1=starting state, 2=front digit, 3=decimal, 4=decimal digit, 5=dead
-    // Accepting: 2, 4
-    static const int T[7][3] = {
+    // States: 1=start, 2=integer, 3=decimal point, 4=real, 5=dead
+    // Accepting: 2 (integer), 4 (real)
+    static const int T[6][3] = {
         {0, 0, 0}, // Unused state
-        {2, 3, 5}, // Starting state (1)
-        {2, 3, 5}, // Front digit state (2)
-        {4, 5, 5}, // Dot state (3)
-        {4, 5, 5}, // Decimal digit state (4)
-        {5, 5, 5}, // Dead state (5)
+        {2, 3, 5}, // Start state (1): digit->2, '.'->3, other->dead
+        {2, 3, 5}, // Integer state (2): digit->2, '.'->3, other->dead  
+        {4, 5, 5}, // Decimal point state (3): digit->4, other->dead
+        {4, 5, 5}, // Real state (4): digit->4, other->dead
+        {5, 5, 5}  // Dead state (5)
     };
 
     int state = 1;
     
-    // Iterate over the ID
     for (char ch : word) {
         int col = char_to_col(ch);
         state = T[state][col];
-
-        // If our state ever hits 6, the ID is not valid
-        if (state == 6) return false;
+        if (state == 5) return false;
     }
-    return (state == 2 || state == 3 || state == 4 || state == 5);
+    
+    return (state == 2 || state == 4); // Accept integer or real
 }
 
 
@@ -429,6 +426,8 @@ std::string Lexer::getCategoryName(TokenType type) {
         case KEYWORD_GET:
         case KEYWORD_PUT: 
         case KEYWORD_WHILE:
+        case KEYWORD_TRUE:
+        case KEYWORD_FALSE:
             return "keyword";
 
         case IDENTIFIER: return "identifier";
