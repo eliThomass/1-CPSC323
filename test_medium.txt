@@ -1,0 +1,21 @@
+" temp conversion program "
+
+function convert (temp real)
+{
+    return temp * 1.8 + 32;
+}
+
+#
+real celsius, fahrenheit;
+boolean isValid;
+
+get(celsius);
+if (celsius > -273.15)
+    isValid = true;
+else
+    isValid = false;
+fi
+
+fahrenheit = convert(celsius);
+put(fahrenheit);
+#

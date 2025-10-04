@@ -1,0 +1,28 @@
+" calculator program "
+
+function add (a integer, b integer)
+{
+    return a + b;
+}
+
+function multiply (x real, y real)
+{
+    return x * y;
+}
+
+#
+integer num1, num2, sum;
+real value1, value2, product;
+boolean keepRunning;
+
+keepRunning = true;
+num1 = 10;
+num2 = 5;
+
+sum = add(num1, num2);
+put(sum);
+
+value1 = 3.14;
+value2 = 2.0;
+product = multiply(value1, value2);
+#

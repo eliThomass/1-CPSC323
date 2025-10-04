@@ -19,7 +19,7 @@ To compile and run the lexical analyzer:
 
 1. **Compilation**: Navigate to the project directory and compile using:
    ```bash
-    WIP COMMAND
+    g++ -o lexer main.cpp lexer.cpp
    ```
 
 2. **Input File**: Create a text file named `test_input.txt` containing Rat25F source code or run the already existing `small, medium or large` files.
