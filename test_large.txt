@@ -12,6 +12,7 @@ function multiply (x real, y real)
 
 #
 integer num1, num2, sum;
+INtegER
 real value1, value2, product;
 boolean keepRunning;
 

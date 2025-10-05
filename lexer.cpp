@@ -194,28 +194,28 @@ Token Lexer::getNextToken() {
         int start = position;
 
         while (true) {
-            char next_char = peek(1); 
-            
-            // Test string of what the lexeme would be if we advance
             std::string potential_lex = input.substr(start, position - start + 1);
-
             if (IdDFSM(potential_lex)) {
-                // If our potential lexeme is still valid, advance to next character, otherwise break
                 advance();
             } else {
                 break;
             }
         }
+        
+        // Now we must check if the lexeme is a keyword or identifier.
+        std::string lexeme = input.substr(start, position - start);
 
-        // Create our lexeme based off our previous starting position and current position now.
-        std::string lex = input.substr(start, position - start);
-
-        if (isKeyword(lex)) {
-            return Token{ getKeywordType(lex), lex, curr_line };
+        // Keywords are case_insensitive.
+        std::string lower_lexeme = lexeme;
+        for (char& ch : lower_lexeme) {
+            ch = tolower(ch);
         }
 
-        // If not keyword, we know that it is an identifier
-        return Token{ IDENTIFIER, lex, curr_line };
+        if (isKeyword(lower_lexeme)) {
+            return Token{ getKeywordType(lower_lexeme), lexeme, curr_line };
+        } else {
+            return Token{ IDENTIFIER, lexeme, curr_line };
+        }
     }
 
     if (isDigit(c) || c == '.') {
