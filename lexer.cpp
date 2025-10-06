@@ -434,7 +434,8 @@ std::string Lexer::getTokenName(TokenType type) {
             return "SEP_RIGHT_BRACE";
 
         // Unknown
-        case UNKNOWN: return "UNKNOWN";
+        case UNKNOWN: 
+            return "UNKNOWN";
     }
 
     return "UNKNOWN";
