@@ -42,13 +42,11 @@ private:
 
     // Helper functions
     void match(TokenType expected);
-    void error(const std::string& message); // 
     void nextToken(); // nwxt token in lexer stream
 
 public:
     // Constructor and Destructor
     Parser(Lexer& lexer, bool print_switch = false);
-    ~Parser();
     
     // Main parsing function
     void parse();

@@ -520,3 +520,7 @@ TokenType Lexer::getKeywordType(std::string word) {
 
     return UNKNOWN;
 }
+
+int Lexer::getTokenLine(Token token) {
+    return token.line;
+}

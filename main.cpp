@@ -5,6 +5,7 @@
 #include <iomanip>
 #include "lexer.h"
 #include <sstream> // Read whole input into one string
+#include "parser.h"
 
 int main() {
     // Prompt user for an input file to parse
@@ -50,6 +51,10 @@ int main() {
         }
         
         outFile.close();
+
+        Parser parser(lexer, true);
+        parser.parse();
+
     }
     return 0;
 }

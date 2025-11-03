@@ -55,6 +55,7 @@ public:
     std::vector<Token> getAllTokens();
     std::string getTokenName(TokenType type);
     std::string getCategoryName(TokenType type);
+    int getTokenLine(Token token);
 };
 
 #endif
