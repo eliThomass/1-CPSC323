@@ -43,6 +43,16 @@ void Parser::match(TokenType expected)
 void Parser::Rat25F() {
     if (print_switch) { std::cout << "Entering <Rat25F>" << std::endl; }
 
+    // Based on the compiler doc, we will call our other functions
+    // for all the NONTERMINALS in the production.
+    // For all the terminals in the production, we will use the match function.
+    // We will repeat this for every production rule.
+    OptFunctionDefinitions();
+    match(SEP_HASH);
+    OptDeclarationList();
+    StatementList();
+    match(SEP_HASH);
+
     if (print_switch) { std::cout << "Exiting <Rat25F>" << std::endl; }
 }
 
@@ -50,12 +60,29 @@ void Parser::Rat25F() {
 void Parser::OptFunctionDefinitions() {
     if (print_switch) { std::cout << "Entering <OptFunctionDefinitions>" << std::endl; }
 
+    std::cout << current_token.type << std::endl;
+
+    switch (current_token.type) 
+    {
+        case KEYWORD_FUNCTION:
+            FunctionDefinitions();
+            break;
+    }
+
     if (print_switch) { std::cout << "Exiting <OptFunctionDefinitions>" << std::endl; }
 }
 
 // R3
 void Parser::FunctionDefinitions() {
     if (print_switch) { std::cout << "Entering <FunctionDefinitions>" << std::endl; }
+
+    switch (current_token.type) 
+    {
+        case KEYWORD_FUNCTION:
+            break;
+        default:
+            throw std::runtime_error("expected a statement");
+    }
 
     if (print_switch) { std::cout << "Exiting <FunctionDefinitions>" << std::endl; }
 }
