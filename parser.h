@@ -8,22 +8,38 @@ private:
     Token current_token;
     bool print_switch; // printing on/off
     
-    // Grammar rule functions
-    void StatementList(); //sequence of statements
-    void Statement(); // decides what king of statement
-    void Assign(); // like x = 5
-    void Expression(); // like x+y-z
-    void ExpressionPrime(); // tail ends of expressions
-    void Term(); // like a * b
-    void TermPrime(); // tail ends of terms
-    void Factor(); // num, identifier, expressions in parenthesises
-    void Condition(); // x > 5 or a == n
+    // Grammar rule functions; reference project document
+    void Rat25F();
+    void OptFunctionDefinitions();
+    void FunctionDefinitions();
+    void Function();
+    void OptParameterList();
+    void ParameterList();
+    void Parameter();
+    void Qualifier();
+    void Body();
+    void OptDeclarationList();
+    void DeclarationList();
+    void Declaration();
+    void IDs();
+    void StatementList();
+    void Statement();
+    void Compound();
+    void Assign();
     void If();
     void Return();
-    void Print(); // put
-    void Scan(); // get
+    void Print();
+    void Scan();
     void While();
-    
+    void Condition();
+    void Relop();
+    void Expression();
+    void ExpressionPrime();
+    void Term();
+    void TermPrime();
+    void Factor();
+    void Primary();
+
     // Helper functions
     void match(TokenType expected);
     void error(const std::string& message); // 
