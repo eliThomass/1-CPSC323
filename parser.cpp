@@ -366,7 +366,7 @@ void Parser::Assign() {
     if (print_switch) { std::cout << "Entering <Assign>" << std::endl; }
 
     match(IDENTIFIER);
-    match(OP_EQUAL);
+    match(OP_ASSIGN);
     Expression();
     match(SEP_SEMICOLON);
 
@@ -427,6 +427,7 @@ void Parser::ReturnPrime() {
     else {
         //epsilon do nothing
     }
+    
         
     if (print_switch) { std::cout << "Exiting <ReturnPrime>" << std::endl; }
 }
@@ -516,6 +517,23 @@ void Parser::Expression() {
 void Parser::ExpressionPrime() {
     if (print_switch) { std::cout << "Entering <ExpressionPrime>" << std::endl; }
 
+    switch (current_token.type) {
+    case OP_PLUS: {
+        match(OP_PLUS);
+        Term();
+        ExpressionPrime();
+        break;
+    }
+    case MINUS:
+        match(MINUS);
+        Term();
+        ExpressionPrime();
+        break;
+    default: {
+        //Epsilon
+        break;
+    }
+    }
 
 
     if (print_switch) { std::cout << "Exiting <ExpressionPrime>" << std::endl; }
@@ -535,12 +553,36 @@ void Parser::Term() {
 void Parser::TermPrime() {
     if (print_switch) { std::cout << "Entering <TermPrime>" << std::endl; }
 
+    switch (current_token.type) {
+    case OP_MULTIPLY:
+    case OP_DIVIDE:
+        nextToken();
+        Factor();
+        TermPrime();
+        break;
+    default: {
+        //Epsilon
+        break;
+    }
+    }
+
     if (print_switch) { std::cout << "Exiting <TermPrime>" << std::endl; }
 }
 
 // R27
 void Parser::Factor() {
     if (print_switch) { std::cout << "Entering <Factor>" << std::endl; }
+
+    if (current_token.type == MINUS) {
+
+        match(MINUS);
+        Primary();
+
+    }
+    else {
+        Primary();
+    }
+
 
     if (print_switch) { std::cout << "Exiting <Factor>" << std::endl; }
 }
@@ -549,5 +591,55 @@ void Parser::Factor() {
 void Parser::Primary() {
     if (print_switch) { std::cout << "Entering <Primary>" << std::endl; }
 
+    switch (current_token.type) {
+    case IDENTIFIER: {
+        match(IDENTIFIER);
+        PrimaryPrime();
+        break;
+    }
+    case INTEGER_LITERAL: {
+        match(INTEGER_LITERAL);
+        break;
+    }
+    case REAL_LITERAL: {
+        match(REAL_LITERAL);
+        break;
+    }
+    case KEYWORD_TRUE:
+    {
+        match(KEYWORD_TRUE);
+        break;
+    }
+    case KEYWORD_FALSE: {
+        match(KEYWORD_FALSE);
+        break;
+    }
+    case SEP_LEFT_PAREN: {
+        match(SEP_LEFT_PAREN);
+        Expression();
+        match(SEP_RIGHT_PAREN);
+        break;
+    }
+    default: {
+        error("Expected primary (id, number, true/false, or '(' expression ')')");
+        break;
+    }
+    }
+
     if (print_switch) { std::cout << "Exiting <Primary>" << std::endl; }
+}
+
+void Parser::PrimaryPrime() {
+    if (print_switch) { std::cout << "Entering <PrimaryPrime>" << std::endl; }
+
+    if (current_token.type == SEP_LEFT_PAREN) {
+        match(SEP_LEFT_PAREN);
+        IDs();
+        match(SEP_RIGHT_PAREN);
+    }
+    else {
+        //epsilon
+    }
+
+    if (print_switch) { std::cout << "Exiting <PrimaryPrime>" << std::endl; }
 }
