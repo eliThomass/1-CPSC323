@@ -5,6 +5,6 @@ function add (x integer, y integer)
 
 #
 integer result;
-result = add(5, 3);
+result = add(a, b);
 put(result);
 #

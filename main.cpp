@@ -9,7 +9,7 @@
 
 int main() {
     // Prompt user for an input file to parse 
-    std::string filename = "test_small.txt";
+    std::string filename = "test_medium.txt";
 
     // Loop files, check if file exists
     std::ifstream file(filename);

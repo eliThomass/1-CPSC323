@@ -24,9 +24,9 @@ identifier     |     result
 operator       |     =
 identifier     |     add
 separator      |     (
-integer        |     5
+identifier     |     a
 separator      |     ,
-integer        |     3
+identifier     |     b
 separator      |     )
 separator      |     ;
 keyword        |     put

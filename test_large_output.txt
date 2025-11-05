@@ -40,7 +40,6 @@ identifier     |     num2
 separator      |     ,
 identifier     |     sum
 separator      |     ;
-keyword        |     INtegER
 keyword        |     real
 identifier     |     value1
 separator      |     ,
