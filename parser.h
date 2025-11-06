@@ -7,6 +7,7 @@ private:
     Lexer& lexer; // lexer reference
     Token current_token;
     bool print_switch; // printing on/off
+    std::ostream& out_stream; // needed to print to output file
     
     // Grammar rule functions; reference project document
     void Rat25F();
@@ -75,7 +76,7 @@ private:
 
 public:
     // Constructor and Destructor
-    Parser(Lexer& lexer, bool print_switch = false);
+    Parser(Lexer& lexer, std::ostream& output_stream, bool print_switch = false);
     
     // Main parsing function
     void parse();
