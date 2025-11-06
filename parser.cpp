@@ -31,6 +31,7 @@ void Parser::parse()
 void Parser::nextToken()
 {
     current_token = lexer.getNextToken();
+    std::cout << "Token: " << std::setw(8) << current_token.type << "Lexeme: " << current_token.value << std::endl;
 }
 
 // Check if our current token matches what we should have
@@ -47,7 +48,7 @@ void Parser::match(TokenType expected)
 
 // R1
 void Parser::Rat25F() {
-    if (print_switch) { std::cout << "Entering <Rat25F>" << std::endl; }
+    if (print_switch) { std::cout << "   <Rat25F> -> <OptFunctionDefs> # <OptDeclarationList> <StatementList> #" << std::endl; }
 
     // Based on the compiler doc, we will call our other functions
     // for all the NONTERMINALS in the production.
@@ -58,13 +59,12 @@ void Parser::Rat25F() {
     OptDeclarationList();
     StatementList();
     match(SEP_HASH);
-
-    if (print_switch) { std::cout << "Exiting <Rat25F>" << std::endl; }
+    
 }
 
 // R2
 void Parser::OptFunctionDefinitions() {
-    if (print_switch) { std::cout << "Entering <OptFunctionDefinitions>" << std::endl; }
+    if (print_switch) { std::cout << "   <OptFunctionDefinitions> -> <FunctionDefinitions> | epsilon" << std::endl; }
 
     switch (current_token.type)
     {
@@ -73,22 +73,20 @@ void Parser::OptFunctionDefinitions() {
         break;
     }
 
-    if (print_switch) { std::cout << "Exiting <OptFunctionDefinitions>" << std::endl; }
 }
 
 // R3
 void Parser::FunctionDefinitions() {
-    if (print_switch) { std::cout << "Entering <FunctionDefinitions>" << std::endl; }
+    if (print_switch) { std::cout << "   <FunctionDefinitions> -> <Function> <FunctionDefinitionsPrime>" << std::endl; }
 
     Function();
     FunctionDefinitionsPrime();
 
-    if (print_switch) { std::cout << "Exiting <FunctionDefinitions>" << std::endl; }
 }
 
 // R3'
 void Parser::FunctionDefinitionsPrime() {
-    if (print_switch) { std::cout << "Entering <FunctionDefinitionsPrime>" << std::endl; }
+    if (print_switch) { std::cout << "   <FunctionDefinitionsPrime> -> <Function> <FunctionDefinitionsPrime> | epsilon" << std::endl; }
 
     if (current_token.type == KEYWORD_FUNCTION) {
         Function();
@@ -97,13 +95,11 @@ void Parser::FunctionDefinitionsPrime() {
     else {
         // epsilon (do nothing)
     }
-
-    if (print_switch) { std::cout << "Exiting <FunctionDefinitionsPrime>" << std::endl; }
 }
 
 // R4
 void Parser::Function() {
-    if (print_switch) { std::cout << "Entering <Function>" << std::endl; }
+    if (print_switch) { std::cout << "   <Function> -> function <Identifier> ( <OptParameterList> ) <OptDeclarationList> <Body>" << std::endl; }
 
     match(KEYWORD_FUNCTION);
     match(IDENTIFIER);
@@ -113,12 +109,11 @@ void Parser::Function() {
     OptDeclarationList();
     Body();
 
-    if (print_switch) { std::cout << "Exiting <Function>" << std::endl; }
 }
 
 // R5
 void Parser::OptParameterList() {
-    if (print_switch) { std::cout << "Entering <OptParameterList>" << std::endl; }
+    if (print_switch) { std::cout << "   <OptParameterList> -> <ParameterList> | epsilon" << std::endl; }
 
     if (current_token.type == IDENTIFIER) {
         ParameterList();
@@ -126,23 +121,19 @@ void Parser::OptParameterList() {
     else {
         // epsilon (do nothing)
     }
-
-    if (print_switch) { std::cout << "Exiting <OptParameterList>" << std::endl; }
 }
 
 // R6
 void Parser::ParameterList() {
-    if (print_switch) { std::cout << "Entering <ParameterList>" << std::endl; }
+    if (print_switch) { std::cout << "   <ParameterList> -> <Parameter> <ParameterListPrime>" << std::endl; }
 
     Parameter();
     ParameterListPrime();
-
-    if (print_switch) { std::cout << "Exiting <ParameterList>" << std::endl; }
 }
 
 // R6'
 void Parser::ParameterListPrime() {
-    if (print_switch) { std::cout << "Entering <ParameterListPrime>" << std::endl; }
+    if (print_switch) { std::cout << "   <ParameterListPrime> -> , <Parameter> <ParameterListPrime> | epsilon" << std::endl; }
 
     if (current_token.type == SEP_COMMA) {
         match(SEP_COMMA);
@@ -152,25 +143,19 @@ void Parser::ParameterListPrime() {
     else {
         // epsilon (do nothing)
     }
-
-    if (print_switch) { std::cout << "Exiting <ParameterListPrime>" << std::endl; }
 }
 
 // R7
 void Parser::Parameter() {
-    if (print_switch) { std::cout << "Entering <Parameter>" << std::endl; }
+    if (print_switch) { std::cout << "   <Parameter> -> <IDs> <Qualifier>" << std::endl; }
 
     IDs();
     Qualifier();
-
-    if (print_switch) { std::cout << "Exiting <Parameter>" << std::endl; }
 }
 
 // R8
 void Parser::Qualifier() {
-    if (print_switch) { std::cout << "Entering <Qualifier>" << std::endl; }
-
-    std::cout << current_token.type;
+    if (print_switch) { std::cout << "   <Qualifier> -> integer | boolean | real" << std::endl; }
 
     if (current_token.type == KEYWORD_INTEGER) {
         match(KEYWORD_INTEGER);
@@ -184,24 +169,20 @@ void Parser::Qualifier() {
     else {
         error("Expected a type qualifier (integer, boolean, or real)");
     }
-
-    if (print_switch) { std::cout << "Exiting <Qualifier>" << std::endl; }
 }
 
 // R9
 void Parser::Body() {
-    if (print_switch) { std::cout << "Entering <Body>" << std::endl; }
+    if (print_switch) { std::cout << "   <Body> -> { <StatementList> }" << std::endl; }
 
     match(SEP_LEFT_BRACE);
     StatementList();
     match(SEP_RIGHT_BRACE);
-
-    if (print_switch) { std::cout << "Exiting <Body>" << std::endl; }
 }
 
 // R10
 void Parser::OptDeclarationList() {
-    if (print_switch) { std::cout << "Entering <OptDeclarationList>" << std::endl; }
+    if (print_switch) { std::cout << "   <OptDeclarationList> -> <DeclarationList> | epsilon" << std::endl; }
 
     switch (current_token.type) {
     case KEYWORD_INTEGER:
@@ -213,24 +194,20 @@ void Parser::OptDeclarationList() {
         // epsilon
         break;
     }
-
-    if (print_switch) { std::cout << "Exiting <OptDeclarationList>" << std::endl; }
 }
 
 // R11
 void Parser::DeclarationList() {
-    if (print_switch) { std::cout << "Entering <DeclarationList>" << std::endl; }
+    if (print_switch) { std::cout << "   <DeclarationList> -> <Declaration> ; <DeclarationListPrime>" << std::endl; }
 
     Declaration();
     match(SEP_SEMICOLON);
     DeclarationListPrime();
-
-    if (print_switch) { std::cout << "Exiting <DeclarationList>" << std::endl; }
 }
 
 // R11'
 void Parser::DeclarationListPrime() {
-    if (print_switch) { std::cout << "Entering <DeclarationListPrime>" << std::endl; }
+    if (print_switch) { std::cout << "   <DeclarationListPrime> -> <Declaration> ; <DeclarationListPrime> | epsilon" << std::endl; }
 
     switch (current_token.type) {
     case KEYWORD_INTEGER:
@@ -244,33 +221,27 @@ void Parser::DeclarationListPrime() {
         // epsilon
         break;
     }
-
-    if (print_switch) { std::cout << "Exiting <DeclarationListPrime>" << std::endl; }
 }
 
 // R12
 void Parser::Declaration() {
-    if (print_switch) { std::cout << "Entering <Declaration>" << std::endl; }
+    if (print_switch) { std::cout << "   <Declaration> -> <Qualifier> <IDs>" << std::endl; }
 
     Qualifier();
     IDs();
-
-    if (print_switch) { std::cout << "Exiting <Declaration>" << std::endl; }
 }
 
 // R13
 void Parser::IDs() {
-    if (print_switch) { std::cout << "Entering <IDs>" << std::endl; }
+    if (print_switch) { std::cout << "   <IDs> -> <Identifier> <IDsPrime>" << std::endl; }
 
     match(IDENTIFIER);
     IDsPrime();
-
-    if (print_switch) { std::cout << "Exiting <IDs>" << std::endl; }
 }
 
 // R13'
 void Parser::IDsPrime() {
-    if (print_switch) { std::cout << "Entering <IDsPrime>" << std::endl; }
+    if (print_switch) { std::cout << "   <IDsPrime> -> , <IDs> | epsilon" << std::endl; }
 
     if (current_token.type == SEP_COMMA) {
         match(SEP_COMMA);
@@ -279,23 +250,19 @@ void Parser::IDsPrime() {
     else {
         // epsilon
     }
-
-    if (print_switch) { std::cout << "Exiting <IDsPrime>" << std::endl; }
 }
 
 // R14
 void Parser::StatementList() {
-    if (print_switch) { std::cout << "Entering <StatementList>" << std::endl; }
+    if (print_switch) { std::cout << "   <StatementList> -> <Statement> <StatementListPrime>" << std::endl; }
 
     Statement();
     StatementListPrime();
-
-    if (print_switch) { std::cout << "Exiting <StatementList>" << std::endl; }
 }
 
 // R14'
 void Parser::StatementListPrime() {
-    if (print_switch) { std::cout << "Entering <StatementListPrime>" << std::endl; }
+    if (print_switch) { std::cout << "   <StatementListPrime> -> <Statement> <StatementListPrime> | epsilon" << std::endl; }
 
     switch (current_token.type) {
     case SEP_LEFT_BRACE:
@@ -312,13 +279,11 @@ void Parser::StatementListPrime() {
         // epsilon
         break;
     }
-
-    if (print_switch) { std::cout << "Exiting <StatementListPrime>" << std::endl; }
 }
 
 // R15
 void Parser::Statement() {
-    if (print_switch) { std::cout << "Entering <Statement>" << std::endl; }
+    if (print_switch) { std::cout << "   <Statement> -> <Compound> | <Assign> | <If> | <Return> | <Print> | <Scan> | <While>" << std::endl; }
 
     switch (current_token.type) {
     case SEP_LEFT_BRACE:
@@ -345,52 +310,43 @@ void Parser::Statement() {
     default: 
         error("Expected a statement ({, id, if, return, put, get, while)");
     }
-
-
-    if (print_switch) { std::cout << "Exiting <Statement>" << std::endl; }
 }
 
 // R16
 void Parser::Compound() {
-    if (print_switch) { std::cout << "Entering <Compound>" << std::endl; }
+    if (print_switch) { std::cout << "<Compound> -> { <StatementList> }" << std::endl; }
 
     match(SEP_LEFT_BRACE);
     StatementList();
     match(SEP_RIGHT_BRACE);
-
-    if (print_switch) { std::cout << "Exiting <Compound>" << std::endl; }
 }
 
 // R17
 void Parser::Assign() {
-    if (print_switch) { std::cout << "Entering <Assign>" << std::endl; }
+    if (print_switch) { std::cout << "   <Assign> -> <Identifier> = <Expression> ;" << std::endl; }
 
     match(IDENTIFIER);
     match(OP_ASSIGN);
     Expression();
     match(SEP_SEMICOLON);
-
-    if (print_switch) { std::cout << "Exiting <Assign>" << std::endl; }
 }
 
 // R18
 void Parser::If() {
-    if (print_switch) { std::cout << "Entering <If>" << std::endl; }
+    if (print_switch) { std::cout << "   <If> -> if ( <Condition> ) <Statement> <ElseOpt> fi" << std::endl; }
 
     match(KEYWORD_IF);
     match(SEP_LEFT_PAREN);
     Condition();
     match(SEP_RIGHT_PAREN);
     Statement();
-    IfPrime();
+    IfPrime(); // Corresponds to <ElseOpt>
     match(KEYWORD_FI);
-
-    if (print_switch) { std::cout << "Exiting <If>" << std::endl; }
 }
 
 //R18'
 void Parser::IfPrime() {
-    if (print_switch) { std::cout << "Entering <IfPrime>" << std::endl; }
+    if (print_switch) { std::cout << "   <ElseOpt> -> else <Statement> | epsilon" << std::endl; }
 
     if (current_token.type == KEYWORD_ELSE) {
         match(KEYWORD_ELSE);
@@ -400,91 +356,74 @@ void Parser::IfPrime() {
     else {
         //epsilon do nothing
     }
-    
-
-
-    if (print_switch) { std::cout << "Exiting <IfPrime>" << std::endl; }
 }
 
 // R19
 void Parser::Return() {
-    if (print_switch) { std::cout << "Entering <Return>" << std::endl; }
+    if (print_switch) { std::cout << "   <Return> -> return <ReturnOpt> ;" << std::endl; }
 
     match(KEYWORD_RETURN);
-    ReturnPrime();
+    ReturnPrime(); // Corresponds to <ReturnOpt>
     match(SEP_SEMICOLON);
-
-    if (print_switch) { std::cout << "Exiting <Return>" << std::endl; }
 }
 
 //R19'
 void Parser::ReturnPrime() {
-    if (print_switch) { std::cout << "Entering <ReturnPrime>" << std::endl; }
+    if (print_switch) { std::cout << "   <ReturnOpt> -> <Expression> | epsilon" << std::endl; }
 
-    if (current_token.type == IDENTIFIER) {
+    if (current_token.type == IDENTIFIER) { // This check is likely too weak based on the grammar, but matches your original code
         Expression();
     }
     else {
         //epsilon do nothing
     }
-    
-        
-    if (print_switch) { std::cout << "Exiting <ReturnPrime>" << std::endl; }
 }
 
 // R20
 void Parser::Print() {
-    if (print_switch) { std::cout << "Entering <Print>" << std::endl; }
+    if (print_switch) { std::cout << "   <Print> -> put ( <Expression> ) ;" << std::endl; }
 
     match(KEYWORD_PUT);
     match(SEP_LEFT_PAREN);
     Expression();
     match(SEP_RIGHT_PAREN);
     match(SEP_SEMICOLON);
-
-    if (print_switch) { std::cout << "Exiting <Print>" << std::endl; }
 }
 
 // R21
 void Parser::Scan() {
-    if (print_switch) { std::cout << "Entering <Scan>" << std::endl; }
+    if (print_switch) { std::cout << "   <Scan> -> get ( <IDs> ) ;" << std::endl; }
 
     match(KEYWORD_GET);
     match(SEP_LEFT_PAREN);
     IDs();
     match(SEP_RIGHT_PAREN);
     match(SEP_SEMICOLON);
-
-    if (print_switch) { std::cout << "Exiting <Scan>" << std::endl; }
 }
 
 // R22
 void Parser::While() {
-    if (print_switch) { std::cout << "Entering <While>" << std::endl; }
+    if (print_switch) { std::cout << "   <While> -> while ( <Condition> ) <Statement>" << std::endl; }
 
     match(KEYWORD_WHILE);
     match(SEP_LEFT_PAREN);
     Condition();
     match(SEP_RIGHT_PAREN);
     Statement();
-
-    if (print_switch) { std::cout << "Exiting <While>" << std::endl; }
 }
 
 // R23
 void Parser::Condition() {
-    if (print_switch) { std::cout << "Entering <Condition>" << std::endl; }
+    if (print_switch) { std::cout << "   <Condition> -> <Expression> <Relop> <Expression>" << std::endl; }
 
     Expression();
     Relop();
     Expression();
-
-    if (print_switch) { std::cout << "Exiting <Condition>" << std::endl; }
 }
 
 // R24
 void Parser::Relop() {
-    if (print_switch) { std::cout << "Entering <Relop>" << std::endl; }
+    if (print_switch) { std::cout << "   <Relop> -> == | != | > | < | <= | =>" << std::endl; }
 
     switch (current_token.type) {
     case OP_EQUAL:
@@ -499,23 +438,19 @@ void Parser::Relop() {
         error("Expected relational operator (== != > < <= >=)");
         break;
     }
-
-    if (print_switch) { std::cout << "Exiting <Relop>" << std::endl; }
 }
 
 // R25
 void Parser::Expression() {
-    if (print_switch) { std::cout << "Entering <Expression>" << std::endl; }
+    if (print_switch) { std::cout << "   <Expression> -> <Term> <ExpressionPrime>" << std::endl; }
 
     Term();
     ExpressionPrime();
-
-    if (print_switch) { std::cout << "Exiting <Expression>" << std::endl; }
 }
 
 // R25'
 void Parser::ExpressionPrime() {
-    if (print_switch) { std::cout << "Entering <ExpressionPrime>" << std::endl; }
+    if (print_switch) { std::cout << "   <ExpressionPrime> -> + <Term> <ExpressionPrime> | - <Term> <ExpressionPrime> | epsilon" << std::endl; }
 
     switch (current_token.type) {
     case OP_PLUS: {
@@ -534,24 +469,19 @@ void Parser::ExpressionPrime() {
         break;
     }
     }
-
-
-    if (print_switch) { std::cout << "Exiting <ExpressionPrime>" << std::endl; }
 }
 
 // R26
 void Parser::Term() {
-    if (print_switch) { std::cout << "Entering <Term>" << std::endl; }
+    if (print_switch) { std::cout << "   <Term> -> <Factor> <TermPrime>" << std::endl; }
 
     Factor();
     TermPrime();
-
-    if (print_switch) { std::cout << "Exiting <Term>" << std::endl; }
 }
 
 // R26'
 void Parser::TermPrime() {
-    if (print_switch) { std::cout << "Entering <TermPrime>" << std::endl; }
+    if (print_switch) { std::cout << "   <TermPrime> -> * <Factor> <TermPrime> | / <Factor> <TermPrime> | epsilon" << std::endl; }
 
     switch (current_token.type) {
     case OP_MULTIPLY:
@@ -565,13 +495,11 @@ void Parser::TermPrime() {
         break;
     }
     }
-
-    if (print_switch) { std::cout << "Exiting <TermPrime>" << std::endl; }
 }
 
 // R27
 void Parser::Factor() {
-    if (print_switch) { std::cout << "Entering <Factor>" << std::endl; }
+    if (print_switch) { std::cout << "   <Factor> -> - <Primary> | <Primary>" << std::endl; }
 
     if (current_token.type == MINUS) {
 
@@ -582,19 +510,16 @@ void Parser::Factor() {
     else {
         Primary();
     }
-
-
-    if (print_switch) { std::cout << "Exiting <Factor>" << std::endl; }
 }
 
 // R28
 void Parser::Primary() {
-    if (print_switch) { std::cout << "Entering <Primary>" << std::endl; }
+    if (print_switch) { std::cout << "   <Primary> -> <Identifier> <PrimaryPrime> | <Integer> | <Real> | true | false | ( <Expression> )" << std::endl; }
 
     switch (current_token.type) {
     case IDENTIFIER: {
         match(IDENTIFIER);
-        PrimaryPrime();
+        PrimaryPrime(); // Corresponds to <CallOpt>
         break;
     }
     case INTEGER_LITERAL: {
@@ -625,12 +550,10 @@ void Parser::Primary() {
         break;
     }
     }
-
-    if (print_switch) { std::cout << "Exiting <Primary>" << std::endl; }
 }
 
 void Parser::PrimaryPrime() {
-    if (print_switch) { std::cout << "Entering <PrimaryPrime>" << std::endl; }
+    if (print_switch) { std::cout << "   <PrimaryPrime> -> ( <IDs> ) | epsilon" << std::endl; }
 
     if (current_token.type == SEP_LEFT_PAREN) {
         match(SEP_LEFT_PAREN);
@@ -640,6 +563,4 @@ void Parser::PrimaryPrime() {
     else {
         //epsilon
     }
-
-    if (print_switch) { std::cout << "Exiting <PrimaryPrime>" << std::endl; }
 }
