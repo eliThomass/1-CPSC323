@@ -26,6 +26,8 @@ int main() {
         std::string sourceCode = buffer.str();
         file.close();
 
+        /* THIS SECTION IS FOR LEXER OUTPUT, not needed for assignment 2
+        
         // Initialize our lexer, then get all tokens from sourceCode
         Lexer lexer(sourceCode);
         std::vector<Token> tokens = lexer.getAllTokens();
@@ -44,6 +46,7 @@ int main() {
         }
 
         outFile.close();
+        */
 
         // Initialize our output file for parser results
         std::string outputFileNameParser = filename.substr(0, filename.length() - 4) + "_output_parser.txt";
