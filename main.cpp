@@ -45,10 +45,11 @@ int main() {
 
         outFile.close();
 
+        // Initialize our output file for parser results
         std::string outputFileNameParser = filename.substr(0, filename.length() - 4) + "_output_parser.txt";
         std::ofstream outFileParser(outputFileNameParser);
 
-
+        // Parse the source code
         Lexer parser_lexer(sourceCode);
         Parser parser(parser_lexer, outFileParser, true);
         parser.parse();
