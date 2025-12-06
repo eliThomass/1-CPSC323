@@ -16,4 +16,4 @@ public:
     SymbolTable(int initial_address);
     int symbolPush(std::string& var_name, TokenType type);
     Entry* lookup(std::string& var_name);
-}
+};
