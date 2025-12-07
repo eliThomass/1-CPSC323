@@ -1,6 +1,6 @@
 #include "parser.h"
 #include "lexer.h"
-#include <unordered_map>
+#include <map>
 
 struct Entry {
     int memory_address;
@@ -11,9 +11,9 @@ struct Entry {
 class SymbolTable {
 private:
     int next_available_address;
-    std::unordered_map<std::string, Entry> table;
+    std::map<std::string, Entry> table;
 public:
-    SymbolTable(int initial_address);
-    int symbolPush(std::string& var_name, TokenType type);
-    Entry* lookup(std::string& var_name);
+    SymbolTable();
+    bool symbolPush(Token symbol);
+    int getAddress(std::string& lexeme);
 };
