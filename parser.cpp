@@ -29,6 +29,7 @@ void Parser::parse()
     try {
         Rat25F();
         out_stream << "Parse Successful" << std::endl;
+        st.printTable();
 
     }
     catch (const std::runtime_error& e) {
@@ -65,7 +66,9 @@ void Parser::Rat25F() {
     // for all the NONTERMINALS in the production.
     // For all the terminals in the production, we will use the match function.
     // We will repeat this for every production rule.
-    OptFunctionDefinitions();
+    
+    
+    //OptFunctionDefinitions(); // FOR ASSIGNMENT 3, there are no function definitions
     match(SEP_HASH);
     OptDeclarationList();
     StatementList();
@@ -160,7 +163,7 @@ void Parser::ParameterListPrime() {
 void Parser::Parameter() {
     if (print_switch) { out_stream << "   <Parameter> -> <IDs> <Qualifier>" << std::endl; }
 
-    IDs();
+    IDs("");
     Qualifier();
 }
 
@@ -173,12 +176,12 @@ void Parser::Qualifier() {
     }
     else if (current_token.type == KEYWORD_BOOLEAN) {
         match(KEYWORD_BOOLEAN);
-    }
+    }/*
     else if (current_token.type == KEYWORD_REAL) {
         match(KEYWORD_REAL);
-    }
+    }*/ // Assignment 3 has NO real qualifier
     else {
-        error("Expected a type qualifier (integer, boolean, or real)");
+        error("Expected a type qualifier (integer or boolean)");
     }
 }
 
@@ -198,7 +201,7 @@ void Parser::OptDeclarationList() {
     switch (current_token.type) {
     case KEYWORD_INTEGER:
     case KEYWORD_BOOLEAN:
-    case KEYWORD_REAL:
+    // case KEYWORD_REAL: // removed for assignment 3
         DeclarationList();
         break;
     default:
@@ -223,7 +226,7 @@ void Parser::DeclarationListPrime() {
     switch (current_token.type) {
     case KEYWORD_INTEGER:
     case KEYWORD_BOOLEAN:
-    case KEYWORD_REAL:
+    // case KEYWORD_REAL: // assignment 3
         Declaration();
         match(SEP_SEMICOLON);
         DeclarationListPrime();
@@ -238,25 +241,41 @@ void Parser::DeclarationListPrime() {
 void Parser::Declaration() {
     if (print_switch) { out_stream << "   <Declaration> -> <Qualifier> <IDs>" << std::endl; }
 
+    std::string declared_type = "";
+    if (current_token.type == KEYWORD_INTEGER) declared_type = "integer";
+    else if (current_token.type == KEYWORD_BOOLEAN) declared_type = "boolean";
+
     Qualifier();
-    IDs();
+    IDs(declared_type);
 }
 
 // R13
-void Parser::IDs() {
+void Parser::IDs(std::string declared_type) {
     if (print_switch) { out_stream << "   <IDs> -> <Identifier> <IDsPrime>" << std::endl; }
 
+    std::string var_name = current_token.value;
+    // If type is not empty, we are declaring the identifier (with its type)
+    if (!declared_type.empty()) {
+        if(!st.symbolPush(var_name, declared_type)) {
+            error("Variable '" + var_name + "' already declared");
+        };
+    }
+    // If type IS empty, we must be using the identifier after it's been declared
+    else {
+        int addr = st.getAddress(var_name);
+        if (addr == -1) error("Variable '" + var_name + "' used but not declared.");
+    }
     match(IDENTIFIER);
-    IDsPrime();
+    IDsPrime(declared_type);
 }
 
 // R13'
-void Parser::IDsPrime() {
+void Parser::IDsPrime(std::string declared_type) {
     if (print_switch) { out_stream << "   <IDsPrime> -> , <IDs> | epsilon" << std::endl; }
 
     if (current_token.type == SEP_COMMA) {
         match(SEP_COMMA);
-        IDs();
+        IDs(declared_type);
     }
     else {
         // epsilon
@@ -385,7 +404,7 @@ void Parser::ReturnPrime() {
     switch (current_token.type) {
     case IDENTIFIER:
     case INTEGER_LITERAL:
-    case REAL_LITERAL:
+    // case REAL_LITERAL:
     case KEYWORD_TRUE:
     case KEYWORD_FALSE:
     case SEP_LEFT_PAREN:
@@ -415,7 +434,7 @@ void Parser::Scan() {
 
     match(KEYWORD_GET);
     match(SEP_LEFT_PAREN);
-    IDs();
+    IDs("");
     match(SEP_RIGHT_PAREN);
     match(SEP_SEMICOLON);
 }
@@ -559,10 +578,10 @@ void Parser::Primary() {
         match(INTEGER_LITERAL);
         break;
     }
-    case REAL_LITERAL: {
+    /*case REAL_LITERAL: {
         match(REAL_LITERAL);
         break;
-    }
+    } */ // removed for assignment 3
     case KEYWORD_TRUE:
     {
         match(KEYWORD_TRUE);
@@ -590,7 +609,7 @@ void Parser::PrimaryPrime() {
 
     if (current_token.type == SEP_LEFT_PAREN) {
         match(SEP_LEFT_PAREN);
-        IDs();
+        IDs("");
         match(SEP_RIGHT_PAREN); 
     }
     else {

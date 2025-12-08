@@ -1,21 +1,18 @@
 " temp conversion program "
-
-function convert (temp real)
-{
-    return temp * 1.8 + 32;
-}
-
 #
-real celsius, fahrenheit;
+integer celsius, fahrenheit; 
 boolean isValid;
 
 get(celsius);
-if (celsius > -273.15)
+
+if (celsius > -273) 
     isValid = true;
 else
     isValid = false;
 fi
 
-fahrenheit = convert(celsius);
+" No more functions, so we must inline: (C * 9/5) + 32 "
+fahrenheit = celsius * 9 / 5 + 32;
+
 put(fahrenheit);
 #

@@ -1,6 +1,5 @@
 Token: separator      Lexeme: #
    <Rat25F> -> <OptFunctionDefs> # <OptDeclarationList> <StatementList> #
-   <OptFunctionDefinitions> -> <FunctionDefinitions> | epsilon
 Token: keyword        Lexeme: integer
    <OptDeclarationList> -> <DeclarationList> | epsilon
    <DeclarationList> -> <Declaration> ; <DeclarationListPrime>

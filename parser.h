@@ -1,4 +1,9 @@
+#ifndef PARSER_H
+#define PARSER_H
+
 #include "lexer.h"
+#include "SymbolTable.h"
+#include "assembler.h"
 #include <fstream>
 
 class Parser
@@ -8,6 +13,8 @@ private:
     Token current_token;
     bool print_switch; // printing on/off
     std::ostream& out_stream; // needed to print to output file
+    SymbolTable st; // Class instance so we can add to symbol table
+    AssemblyCodeGenerator ACG; // Another class instance so we can generate assembly code.
     
     // Grammar rule functions; reference project document
     void Rat25F();
@@ -31,8 +38,8 @@ private:
     void DeclarationList();
     void DeclarationListPrime();
     void Declaration();
-    void IDs();
-    void IDsPrime();
+    void IDs(std::string declared_type);
+    void IDsPrime(std::string declared_type);
 
     // R14 - R17
     void StatementList();
@@ -81,3 +88,5 @@ public:
     // Main parsing function
     void parse();
 };
+
+#endif

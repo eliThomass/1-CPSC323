@@ -1,3 +1,6 @@
+#ifndef ASSEMBLER_H
+#define ASSEMBLER_H
+
 #include "SymbolTable.h"
 
 // Example: 1  PUSHI  0
@@ -19,3 +22,5 @@ class AssemblyCodeGenerator {
         int get_current_address();
         void print_assembly_code();
 };
+
+#endif

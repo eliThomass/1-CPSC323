@@ -6,6 +6,7 @@
 #include "lexer.h"
 #include <sstream> // Read whole input into one string
 #include "parser.h"
+#include "SymbolTable.h"
 
 int main() {
     // Prompt user for an input file to parse 
@@ -18,7 +19,6 @@ int main() {
             std::cerr << "Error: could not open input file: " << filename << "\n";
             return 1;
         }
-
 
         // Put all of source code into one long string
         std::stringstream buffer;
