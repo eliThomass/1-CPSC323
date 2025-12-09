@@ -10,7 +10,8 @@
 
 int main() {
     // Prompt user for an input file to parse 
-    std::vector<std::string> filenames = {"test_small.txt", "test_medium.txt", "test_large.txt"};
+    std::vector<std::string> filenames = { "test_small.txt", "test_medium.txt", "test_large.txt" };
+    //std::vector<std::string> filenames = { "test_small_prof.txt" };
 
     // Loop files, check if file exists
     for (std::string filename : filenames) {
@@ -27,7 +28,7 @@ int main() {
         file.close();
 
         /* THIS SECTION IS FOR LEXER OUTPUT, not needed for assignment 2
-        
+
         // Initialize our lexer, then get all tokens from sourceCode
         Lexer lexer(sourceCode);
         std::vector<Token> tokens = lexer.getAllTokens();
@@ -57,7 +58,7 @@ int main() {
         Parser parser(parser_lexer, outFileParser, true);
         parser.parse();
     }
-    
+
 
     return 0;
 }
