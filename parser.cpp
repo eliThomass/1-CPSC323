@@ -12,11 +12,11 @@ void Parser::error(const std::string& error) {
     // Errors should still go to std::cerr (console) and the output stream
     std::cerr << "Parse Failed: " << error << std::endl;
     std::cerr << "  ...at token: " << current_token.value
-            << " (Line " << current_token.line << ")" << std::endl;
-    
+        << " (Line " << current_token.line << ")" << std::endl;
+
     out_stream << "Parse Failed: " << error << std::endl;
     out_stream << "  ...at token: " << current_token.value
-            << " (Line " << current_token.line << ")" << std::endl;
+        << " (Line " << current_token.line << ")" << std::endl;
 
     throw std::runtime_error(error);
 }
@@ -29,6 +29,8 @@ void Parser::parse()
     try {
         Rat25F();
         out_stream << "Parse Successful" << std::endl;
+
+        ACG.print_assembly_code();
         st.printTable();
 
     }
@@ -53,7 +55,7 @@ void Parser::match(TokenType expected)
     }
     else {
         std::string err_msg = "Token type did not match expected " + lexer.getCategoryName(expected) +
-                              ", got " + lexer.getCategoryName(current_token.type);
+            ", got " + lexer.getCategoryName(current_token.type);
         error(err_msg);
     }
 }
@@ -66,14 +68,14 @@ void Parser::Rat25F() {
     // for all the NONTERMINALS in the production.
     // For all the terminals in the production, we will use the match function.
     // We will repeat this for every production rule.
-    
-    
+
+
     //OptFunctionDefinitions(); // FOR ASSIGNMENT 3, there are no function definitions
     match(SEP_HASH);
     OptDeclarationList();
     StatementList();
     match(SEP_HASH);
-    
+
 }
 
 // R2
@@ -201,7 +203,7 @@ void Parser::OptDeclarationList() {
     switch (current_token.type) {
     case KEYWORD_INTEGER:
     case KEYWORD_BOOLEAN:
-    // case KEYWORD_REAL: // removed for assignment 3
+        // case KEYWORD_REAL: // removed for assignment 3
         DeclarationList();
         break;
     default:
@@ -226,7 +228,7 @@ void Parser::DeclarationListPrime() {
     switch (current_token.type) {
     case KEYWORD_INTEGER:
     case KEYWORD_BOOLEAN:
-    // case KEYWORD_REAL: // assignment 3
+        // case KEYWORD_REAL: // assignment 3
         Declaration();
         match(SEP_SEMICOLON);
         DeclarationListPrime();
@@ -256,7 +258,7 @@ void Parser::IDs(std::string declared_type) {
     std::string var_name = current_token.value;
     // If type is not empty, we are declaring the identifier (with its type)
     if (!declared_type.empty()) {
-        if(!st.symbolPush(var_name, declared_type)) {
+        if (!st.symbolPush(var_name, declared_type)) {
             error("Variable '" + var_name + "' already declared");
         };
     }
@@ -337,7 +339,7 @@ void Parser::Statement() {
     case KEYWORD_WHILE:
         While();
         break;
-    default: 
+    default:
         error("Expected a statement ({, id, if, return, put, get, while)");
     }
 }
@@ -353,26 +355,80 @@ void Parser::Compound() {
 
 // R17
 void Parser::Assign() {
-    if (print_switch) { out_stream << "   <Assign> -> <Identifier> = <Expression> ;" << std::endl; }
+    if (print_switch) {
+        out_stream << "   <Assign> -> <Identifier> = <Expression> ;" << std::endl;
+    }
+
+    if (current_token.type != IDENTIFIER) {
+        error("id expected at start of assignment");
+    }
+
+    std::string var_name = current_token.value;
+
+
+    int addr = st.getAddress(var_name);
+
+    if (addr == -1) {
+        error("Variable '" + var_name + "' used in assignment before declaration");
+    }
 
     match(IDENTIFIER);
+    if (current_token.type != OP_ASSIGN) {
+        error("= expected in assignment");
+    }
+
     match(OP_ASSIGN);
     Expression();
+    ACG.gen_instr("POPM", addr);
     match(SEP_SEMICOLON);
 }
 
 // R18
 void Parser::If() {
-    if (print_switch) { out_stream << "   <If> -> if ( <Condition> ) <Statement> <ElseOpt> fi" << std::endl; }
+    if (print_switch) {
+        out_stream << "   <If> -> if ( <Condition> ) <Statement> <ElseOpt> fi" << std::endl;
+    }
 
     match(KEYWORD_IF);
     match(SEP_LEFT_PAREN);
-    Condition();
+
+    Condition();        // leaves a JUMPZ ? and pushes its address
+
     match(SEP_RIGHT_PAREN);
+
+    // Save address of JUMPZ
+    int jmpAddr = jumpStack.back();
+    jumpStack.pop_back();
+
+    // THEN block
     Statement();
-    IfPrime();
+
+    // If you have ELSE, handle it
+    if (current_token.type == KEYWORD_ELSE) {
+        // Jump over the else body
+        int jumpToEnd = ACG.get_current_address();
+        ACG.gen_instr("JUMP", 0);
+
+        // Backpatch JUMPZ to here (start of else)
+        int elseStart = ACG.get_current_address();
+        ACG.backpatch(jmpAddr, elseStart);
+
+        match(KEYWORD_ELSE);
+        Statement();
+
+        // Backpatch the JUMP to END
+        int endAddr = ACG.get_current_address();
+        ACG.backpatch(jumpToEnd, endAddr);
+    }
+    else {
+        // No else: patch JUMPZ to the instruction after THEN block
+        int afterIf = ACG.get_current_address();
+        ACG.backpatch(jmpAddr, afterIf);
+    }
+
     match(KEYWORD_FI);
 }
+
 
 //R18'
 void Parser::IfPrime() {
@@ -404,7 +460,7 @@ void Parser::ReturnPrime() {
     switch (current_token.type) {
     case IDENTIFIER:
     case INTEGER_LITERAL:
-    // case REAL_LITERAL:
+        // case REAL_LITERAL:
     case KEYWORD_TRUE:
     case KEYWORD_FALSE:
     case SEP_LEFT_PAREN:
@@ -425,6 +481,7 @@ void Parser::Print() {
     match(SEP_LEFT_PAREN);
     Expression();
     match(SEP_RIGHT_PAREN);
+    ACG.gen_instr("STDOUT");
     match(SEP_SEMICOLON);
 }
 
@@ -434,7 +491,25 @@ void Parser::Scan() {
 
     match(KEYWORD_GET);
     match(SEP_LEFT_PAREN);
-    IDs("");
+    if (current_token.type != IDENTIFIER)
+        error("Identifier expected in get");
+    while (true) {
+        std::string name = current_token.value;
+        int addr = st.getAddress(name);
+        if (addr == -1) error("Variable '" + name + "' not declared");
+
+        match(IDENTIFIER);
+
+        // STDIN
+        ACG.gen_instr("STDIN");
+        // POPM addr
+        ACG.gen_instr("POPM", addr);
+
+        if (current_token.type == SEP_COMMA) {
+            match(SEP_COMMA);
+        }
+        else break;
+    }
     match(SEP_RIGHT_PAREN);
     match(SEP_SEMICOLON);
 }
@@ -444,10 +519,19 @@ void Parser::While() {
     if (print_switch) { out_stream << "   <While> -> while ( <Condition> ) <Statement>" << std::endl; }
 
     match(KEYWORD_WHILE);
+    int loopStart = ACG.get_current_address();
+    ACG.gen_instr("LABEL");
     match(SEP_LEFT_PAREN);
     Condition();
     match(SEP_RIGHT_PAREN);
     Statement();
+
+    ACG.gen_instr("JUMP", loopStart);
+    int jmpAddr = jumpStack.back();
+    jumpStack.pop_back();
+    int afterLoop = ACG.get_current_address();
+    ACG.gen_instr("LABEL");
+    ACG.backpatch(jmpAddr, afterLoop);
 }
 
 // R23
@@ -455,8 +539,25 @@ void Parser::Condition() {
     if (print_switch) { out_stream << "   <Condition> -> <Expression> <Relop> <Expression>" << std::endl; }
 
     Expression();
+    TokenType rel = current_token.type;
     Relop();
     Expression();
+
+    switch (rel) {
+    case OP_LESS:          ACG.gen_instr("LES"); break;
+    case OP_GREATER:       ACG.gen_instr("GRT"); break;
+    case OP_EQUAL:         ACG.gen_instr("EQU"); break;
+    case OP_NOT_EQUAL:     ACG.gen_instr("NEQ"); break;
+    case OP_LESS_EQUAL:    ACG.gen_instr("LEQ"); break;
+    case OP_GREATER_EQUAL: ACG.gen_instr("GEQ"); break;
+    default:
+        error("Invalid relational operator in condition");
+    }
+
+    int jmpAddr = ACG.get_current_address();
+    ACG.gen_instr("JUMPZ", 0);
+
+    jumpStack.push_back(jmpAddr);
 }
 
 // R24
@@ -504,6 +605,7 @@ void Parser::ExpressionPrime() {
     case OP_PLUS: {
         match(OP_PLUS);
         Term();
+        ACG.gen_instr("ADD");
         ExpressionPrime();
         break;
     }
@@ -535,6 +637,7 @@ void Parser::TermPrime() {
     case OP_MULTIPLY:
         match(OP_MULTIPLY);
         Factor();
+        ACG.gen_instr("MUL");
         TermPrime();
         break;
     case OP_DIVIDE:
@@ -570,24 +673,37 @@ void Parser::Primary() {
 
     switch (current_token.type) {
     case IDENTIFIER: {
+        std::string name = current_token.value;
+        int addr = st.getAddress(name);
+        if (addr == -1) {
+            error("Variable '" + name + "' used before declaration");
+        }
+
+        ACG.gen_instr("PUSHM", addr);
+
         match(IDENTIFIER);
         PrimaryPrime();
         break;
     }
     case INTEGER_LITERAL: {
+        int value = std::stoi(current_token.value);
+        ACG.gen_instr("PUSHI", value);
+
         match(INTEGER_LITERAL);
         break;
     }
-    /*case REAL_LITERAL: {
-        match(REAL_LITERAL);
-        break;
-    } */ // removed for assignment 3
+                        /*case REAL_LITERAL: {
+                            match(REAL_LITERAL);
+                            break;
+                        } */ // removed for assignment 3
     case KEYWORD_TRUE:
     {
+        ACG.gen_instr("PUSHI", 1);
         match(KEYWORD_TRUE);
         break;
     }
     case KEYWORD_FALSE: {
+        ACG.gen_instr("PUSHI", 0);
         match(KEYWORD_FALSE);
         break;
     }
@@ -610,7 +726,7 @@ void Parser::PrimaryPrime() {
     if (current_token.type == SEP_LEFT_PAREN) {
         match(SEP_LEFT_PAREN);
         IDs("");
-        match(SEP_RIGHT_PAREN); 
+        match(SEP_RIGHT_PAREN);
     }
     else {
         //epsilon
