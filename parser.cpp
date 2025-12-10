@@ -643,6 +643,7 @@ void Parser::TermPrime() {
     case OP_DIVIDE:
         match(OP_DIVIDE);
         Factor();
+        ACG.gen_instr("DIV");
         TermPrime();
         break;
     default: {
