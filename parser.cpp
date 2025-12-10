@@ -662,6 +662,9 @@ void Parser::Factor() {
         match(MINUS);
         Primary();
 
+        // Multiple that number by -1 to simulate negative numbers
+        ACG.gen_instr("PUSHI", -1);
+        ACG.gen_instr("MUL");
     }
     else {
         Primary();
