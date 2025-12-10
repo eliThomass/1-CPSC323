@@ -23,15 +23,15 @@ void Parser::error(const std::string& error) {
 
 
 // The main parsing function, we use it to start the recursion
-void Parser::parse()
+void Parser::parse(std::string assembly_filename)
 {
     // If any recursion inside Rat25 throws an error, we know we have a syntax error.
     try {
         Rat25F();
         out_stream << "Parse Successful" << std::endl;
 
-        ACG.print_assembly_code();
-        st.printTable();
+        ACG.print_assembly_code(assembly_filename);
+        st.printTable(assembly_filename);
 
     }
     catch (const std::runtime_error& e) {

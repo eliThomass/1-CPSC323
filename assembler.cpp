@@ -1,5 +1,6 @@
 #include "assembler.h"
 #include <iomanip>  // for std::setw
+#include <fstream>
 
 AssemblyCodeGenerator::AssemblyCodeGenerator() {
     currentInstruction = 1;           // instructions start at 1
@@ -36,19 +37,22 @@ int AssemblyCodeGenerator::get_current_address() {
 }
 
 // Print the instruction table at the end (like his example listing)
-void AssemblyCodeGenerator::print_assembly_code() {
+void AssemblyCodeGenerator::print_assembly_code(std::string filename) {
+    std::ofstream outfile(filename);
     // Format similar to:
     // 1     PUSHI      0
     for (const auto& inst : instructions) {
-        std::cout << std::setw(3) << inst.address << "  "
-            << std::left << std::setw(8) << inst.op;
+        outfile << std::left << std::setw(5) << inst.address 
+                << std::left << std::setw(10) << inst.op;
 
         if (inst.hasOperand) {
-            std::cout << "  " << inst.operand;
+            outfile << inst.operand;
         }
 
-        std::cout << std::endl;
+        outfile << std::endl;
     }
+
+    outfile.close();
 }
 
 

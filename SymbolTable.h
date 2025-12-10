@@ -18,7 +18,7 @@ public:
     SymbolTable();
     bool symbolPush(std::string var_name, std::string type);
     int getAddress(std::string& lexeme);
-    void printTable();
+    void printTable(std::string filename);
 };
 
 #endif

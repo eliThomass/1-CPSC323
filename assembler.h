@@ -25,7 +25,7 @@ public:
     void gen_instr(std::string op, int operand); // with operand
     void gen_instr(std::string op);              // for opcodes like ADD with no operand
     int get_current_address();
-    void print_assembly_code();
+    void print_assembly_code(std::string filename);
     void backpatch(int instrAddress, int targetAddress);
     int get_jump();
     void pop_jump();

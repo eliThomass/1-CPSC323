@@ -1,0 +1,31 @@
+1    STDIN     
+2    POPM      10000
+3    PUSHM     10000
+4    PUSHI     273
+5    PUSHI     -1
+6    MUL       
+7    GRT       
+8    JUMPZ     12
+9    PUSHI     1
+10   POPM      10002
+11   JUMP      14
+12   PUSHI     0
+13   POPM      10002
+14   PUSHM     10000
+15   PUSHI     9
+16   MUL       
+17   PUSHI     5
+18   DIV       
+19   PUSHI     32
+20   ADD       
+21   POPM      10001
+22   PUSHM     10001
+23   STDOUT    
+
+Symbol Table
+Identifier     Address        Type
+--------------------------------------------
+celsius        10000          integer
+fahrenheit     10001          integer
+isValid        10002          boolean
+

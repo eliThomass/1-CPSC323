@@ -1,0 +1,32 @@
+1    PUSHI     1
+2    POPM      10004
+3    PUSHI     10
+4    POPM      10000
+5    PUSHI     5
+6    POPM      10001
+7    PUSHM     10000
+8    PUSHM     10001
+9    ADD       
+10   POPM      10002
+11   PUSHM     10002
+12   STDOUT    
+13   PUSHI     3
+14   POPM      10000
+15   PUSHI     2
+16   POPM      10001
+17   PUSHM     10000
+18   PUSHM     10001
+19   MUL       
+20   POPM      10003
+21   PUSHM     10003
+22   STDOUT    
+
+Symbol Table
+Identifier     Address        Type
+--------------------------------------------
+keepRunning    10004          boolean
+num1           10000          integer
+num2           10001          integer
+product        10003          integer
+sum            10002          integer
+

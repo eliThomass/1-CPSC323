@@ -1,6 +1,7 @@
 #include "SymbolTable.h"
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 
 SymbolTable::SymbolTable() {
     next_available_address = 10000;
@@ -31,24 +32,24 @@ int SymbolTable::getAddress(std::string& lexeme){
     return -1; // Error code
 }
 
-void SymbolTable::printTable() {
-    std::cout << "\nSymbol Table" << std::endl;
-    // Print the Header
-    std::cout << std::left << std::setw(15) << "Identifier" 
-              << std::left << std::setw(15) << "Address" 
-              << "Type" << std::endl;
+void SymbolTable::printTable(std::string filename) {
+    std::ofstream outfile(filename, std::ios::app);
+    outfile << "\nSymbol Table" << std::endl;
+    outfile << std::left << std::setw(15) << "Identifier" 
+            << std::left << std::setw(15) << "Address" 
+            << "Type" << std::endl;
     
-    std::cout << "--------------------------------------------" << std::endl;
+    outfile << "--------------------------------------------" << std::endl;
 
-    // Iterate through the map
-    // 'pair.second' holds the 'Entry' struct with the data
     for (const auto& pair : table) {
         const Entry& entry = pair.second;
 
-        std::cout << std::left << std::setw(15) << entry.var_name 
-                  << std::left << std::setw(15) << entry.memory_address 
-                  << entry.type << std::endl;
+        outfile << std::left << std::setw(15) << entry.var_name 
+                << std::left << std::setw(15) << entry.memory_address 
+                << entry.type << std::endl;
     }
-    std::cout << std::endl;
+    outfile << std::endl;
+    
+    outfile.close();
 }
 

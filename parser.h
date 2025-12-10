@@ -86,7 +86,7 @@ public:
     Parser(Lexer& lexer, std::ostream& output_stream, bool print_switch = false);
     
     // Main parsing function
-    void parse();
+    void parse(std::string assembly_filename);
 };
 
 #endif
