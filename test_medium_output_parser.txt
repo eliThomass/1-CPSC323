@@ -28,9 +28,7 @@ Token: keyword        Lexeme: get
    <Scan> -> get ( <IDs> ) ;
 Token: separator      Lexeme: (
 Token: identifier     Lexeme: celsius
-   <IDs> -> <Identifier> <IDsPrime>
 Token: separator      Lexeme: )
-   <IDsPrime> -> , <IDs> | epsilon
 Token: separator      Lexeme: ;
 Token: keyword        Lexeme: if
    <StatementListPrime> -> <Statement> <StatementListPrime> | epsilon
@@ -70,7 +68,6 @@ Token: separator      Lexeme: ;
    <TermPrime> -> * <Factor> <TermPrime> | / <Factor> <TermPrime> | epsilon
    <ExpressionPrime> -> + <Term> <ExpressionPrime> | - <Term> <ExpressionPrime> | epsilon
 Token: keyword        Lexeme: else
-   <ElseOpt> -> else <Statement> | epsilon
 Token: identifier     Lexeme: isValid
    <Statement> -> <Compound> | <Assign> | <If> | <Return> | <Print> | <Scan> | <While>
    <Assign> -> <Identifier> = <Expression> ;

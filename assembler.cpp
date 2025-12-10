@@ -65,3 +65,17 @@ void AssemblyCodeGenerator::backpatch(int instrAddress, int targetAddress) {
     }
 }
 
+// Getter for our jump stack
+int AssemblyCodeGenerator::get_jump() {
+    return jumpStack.back();
+}
+
+// Pops our jump stack
+void AssemblyCodeGenerator::pop_jump() {
+    jumpStack.pop_back();
+}
+
+// Pushes to our jump stack
+void AssemblyCodeGenerator::push_jump(int addr) {
+    jumpStack.push_back(addr);
+}

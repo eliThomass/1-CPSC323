@@ -397,8 +397,8 @@ void Parser::If() {
     match(SEP_RIGHT_PAREN);
 
     // Save address of JUMPZ
-    int jmpAddr = jumpStack.back();
-    jumpStack.pop_back();
+    int jmpAddr = ACG.get_jump();
+    ACG.pop_jump();
 
     // THEN block
     Statement();
@@ -527,8 +527,8 @@ void Parser::While() {
     Statement();
 
     ACG.gen_instr("JUMP", loopStart);
-    int jmpAddr = jumpStack.back();
-    jumpStack.pop_back();
+    int jmpAddr = ACG.get_jump();
+    ACG.pop_jump();
     int afterLoop = ACG.get_current_address();
     ACG.gen_instr("LABEL");
     ACG.backpatch(jmpAddr, afterLoop);
@@ -557,7 +557,7 @@ void Parser::Condition() {
     int jmpAddr = ACG.get_current_address();
     ACG.gen_instr("JUMPZ", 0);
 
-    jumpStack.push_back(jmpAddr);
+    ACG.push_jump(jmpAddr);
 }
 
 // R24

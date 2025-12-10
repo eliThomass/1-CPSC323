@@ -19,6 +19,7 @@ class AssemblyCodeGenerator {
 private:
     std::vector<Instruction> instructions;
     int currentInstruction; // starts at 1
+    std::vector<int> jumpStack;
 public:
     AssemblyCodeGenerator();
     void gen_instr(std::string op, int operand); // with operand
@@ -26,6 +27,9 @@ public:
     int get_current_address();
     void print_assembly_code();
     void backpatch(int instrAddress, int targetAddress);
+    int get_jump();
+    void pop_jump();
+    void push_jump(int jumpAddr);
 };
 
 #endif
